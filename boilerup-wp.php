@@ -1,10 +1,10 @@
 <?php
 
 /*
-   Plugin Name: Purdue Branding 
+   Plugin Name: Purdue University Branding 
    Plugin URI: http://www.purdue.edu
-   description: Add the Purdue Brand Fonts and brand icons to WordPress Sites
-   Version: 1.3.0
+   description: Add Purdue University Branding to WordPress
+   Version: 1.3.1
    Author: Marketing and Media
    Author URI: https://brand.purdue.edu
 */
@@ -14,11 +14,11 @@ if ( !defined('ABSPATH') ) {
 	die;
 }
 
-if ( ! class_exists( 'PurdueBrandFonts' ) ) :
+if ( ! class_exists( 'PurdueBranding' ) ) :
 	/**
 	 *
 	 */
-	class PurdueBrandFonts {
+	class PurdueBranding {
 
         public function __construct() {
 			self::includes();
@@ -148,7 +148,7 @@ if ( ! class_exists( 'PurdueBrandFonts' ) ) :
         <?php }
     }
 
-    new PurdueBrandFonts();
+    new PurdueBranding();
 endif;
 
 
