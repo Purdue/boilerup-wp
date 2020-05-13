@@ -1,0 +1,53 @@
+@font-face {
+    font-family: 'United Sans';
+    font-weight: 400;
+    src: local('United Sans'),
+         url('./fonts/UnitedSansRgMd.woff2') format('woff2'), 
+         url('./fonts/UnitedSansRgMd.woff') format('woff');
+    unicode-range: U+000-5FF; /* Latin glyphs */
+  }
+  
+  @font-face {
+    font-family: 'United Sans';
+    font-weight: 700;
+    src: local('United Sans'),
+         url('./fonts/UnitedSansRgBd.woff2') format('woff2'), 
+         url('./fonts/UnitedSansRgBd.woff') format('woff');
+    unicode-range: U+000-5FF; /* Latin glyphs */
+  }
+
+  @font-face {
+    font-family: 'United Sans Condensed';
+    font-weight: 400;
+    src: local('United Sans Condensed'),
+         url('./fonts/UnitedSansCdMd.woff2') format('woff2'), 
+         url('./fonts/UnitedSansCdMd.woff') format('woff');
+    unicode-range: U+000-5FF; /* Latin glyphs */
+  }
+
+  @font-face {
+    font-family: 'United Sans Condensed';
+    font-weight: 700;
+    src: local('United Sans Condensed'),
+         url('./fonts/UnitedSansCdBd.woff2') format('woff2'), 
+         url('./fonts/UnitedSansCdBd.woff') format('woff');
+    unicode-range: U+000-5FF; /* Latin glyphs */
+  }
+
+  @font-face {
+    font-family: 'United Sans Extended';
+    font-weight: 400;
+    src: local('United Sans Extended'),
+         url('./fonts/UnitedSansExMd.woff2') format('woff2'), 
+         url('./fonts/UnitedSansExMd.woff') format('woff');
+    unicode-range: U+000-5FF; /* Latin glyphs */
+  }
+
+  @font-face {
+    font-family: 'United Sans Extended';
+    font-weight: 700;
+    src: local('United Sans Extended'),
+         url('./fonts/UnitedSansExBd.woff2') format('woff2'), 
+         url('./fonts/UnitedSansExBd.woff') format('woff');
+    unicode-range: U+000-5FF; /* Latin glyphs */
+  }
