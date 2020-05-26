@@ -21,7 +21,7 @@ Provide a consistent method of managing the Purdue brand across multiple WordPre
 }
 
 "require": {
-    "purdue/brandfonts": "1.3.0"
+    "purdue/boilerup-wp": "1.3.0"
 }
 ```
 
