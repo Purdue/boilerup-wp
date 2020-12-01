@@ -3,10 +3,10 @@
 /*
    Plugin Name: Purdue University Branding 
    Plugin URI: http://www.purdue.edu
-   description: Add Purdue University Branding to WordPress
-   Version: 1.3.1
-   Author: Marketing and Media
-   Author URI: https://brand.purdue.edu
+   description: Add Purdue University fonts, favicon and logos to WordPress
+   Version: 1.4.2
+   Author: Purdue Marketing and Communications
+   Author URI: https://marcom.purdue.edu
 */
 
 if ( !defined('ABSPATH') ) {
@@ -33,6 +33,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
+            add_action( 'wp_head', array( __CLASS__, 'add_segment_code' ), 5 );
             add_action( 'wp_head', array( __CLASS__, 'add_header_icons' ) );
             add_action( 'login_enqueue_scripts', array( __CLASS__, 'my_login_logo') );
             add_filter( 'login_headerurl', array( __CLASS__, 'my_login_logo_url') );
@@ -58,8 +59,33 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             );
         }
 
+        public static function add_segment_code() {
+            $segment = 'hFnjjDlw7Ww7VAWxQavhY4wUFAs3uxaF';
+            $segment_prod = 'ELTWNTShdcGAnRQ6bzbp2GoHInijLSpx';
+            if (isset($_ENV['PANTHEON_ENVIRONMENT']) && php_sapi_name() != 'cli') {
+                if ($_ENV['PANTHEON_ENVIRONMENT'] === 'live') {
+                  $segment = $segment_prod;
+                } 
+            } elseif ($_SERVER['HTTP_HOST'] === 'www.purdue.edu') {
+                $segment = $segment_prod;
+            }
+
+            ?>
+            <!-- Segment.com Analytics -->
+            <script>
+            !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"];analytics.factory=function(e){return function(){var t=Array.prototype.slice.call(arguments);t.unshift(e);analytics.push(t);return analytics}};for(var e=0;e<analytics.methods.length;e++){var key=analytics.methods[e];analytics[key]=analytics.factory(key)}analytics.load=function(key,e){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n);analytics._loadOptions=e};analytics.SNIPPET_VERSION="4.13.1";
+            analytics.load("<?php echo $segment; ?>");
+            analytics.page();
+            }}();
+            </script>
+            <!-- END Segment.com Analytics -->
+
+            <?php
+        }
+
         public static function add_header_icons() {
             ?>
+
             <link rel="shortcut icon" href="<?php echo esc_url( plugins_url( 'favicon/favicon.ico', __FILE__ ) ); ?>" type="image/x-icon" />
             <link rel="apple-touch-icon" sizes="57x57" href="<?php echo esc_url( plugins_url( 'favicon/apple-icon-57x57.png', __FILE__ ) );?>">
             <link rel="apple-touch-icon" sizes="60x60" href="<?php echo esc_url( plugins_url( 'favicon/apple-icon-60x60.png', __FILE__ ) );?>">
