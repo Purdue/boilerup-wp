@@ -33,6 +33,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
+            add_action( 'wp_footer', array( __CLASS__, 'add_segment_form_identify' ), 5 );
             add_action( 'wp_head', array( __CLASS__, 'add_segment_code' ), 5 );
             add_action( 'wp_head', array( __CLASS__, 'add_header_icons' ) );
             add_action( 'login_enqueue_scripts', array( __CLASS__, 'my_login_logo') );
@@ -70,6 +71,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                 $segment = $segment_prod;
             }
 
+
             ?>
             <!-- Segment.com Analytics -->
             <script>
@@ -79,6 +81,32 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             }}();
             </script>
             <!-- END Segment.com Analytics -->
+
+            <?php
+        }
+
+        public static function add_segment_form_identify() {
+            ?>
+            
+            <script>
+                var firstName = document.querySelector('.name_first > input').value || null
+                var lastName = document.querySelector('.name_last > input').value || null
+                var email = document.querySelector('.name_last > input').value || null
+
+
+                var submit = document.querySelector('.gform_button[type="submit"]') || null
+
+                if(submit !== null) {
+                    submit.addEventListener('click', () => {
+                        analytics.identify({
+                            first_name: firstName,
+                            last_name: lastName,
+                            email: email
+                        })
+                    })
+                }
+
+            </script>
 
             <?php
         }
