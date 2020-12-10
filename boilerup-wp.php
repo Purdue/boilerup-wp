@@ -116,25 +116,18 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             
             <script>
                 var segment_purdue = {
-                    formSubmitted: function(event){
+                    formSubmitted: function(form,event){
                             
                         event.preventDefault();
                         // First, call the identify event and include any important user profile trait values
                         let traits = {
-                            first_name : document.getElementById('form-first_name').value,
-                            last_name : document.getElementById('form-last_name').value,
-                            email : document.getElementById('form-email').value,
-                            address : {
-                                street : document.getElementById('form-street').value,
-                                city : document.getElementById('form-city').value,
-                                phone : document.getElementById('form-phone').value,
-                                postalCode : document.getElementById('form-zip_code').value,
-                                country : document.getElementById('form-form-country').value
-                            }
+                            first_name : form.querySelector('.name_first > input').value || null,
+                            last_name : form.querySelector('.name_last > input').value || null,
+                            email : form.querySelector('.name_last > input').value || null
                         };
-                        let userId = '000011234543234'; // could be the studentId or employeeid 
-                        analytics.identify(userId, traits); // this identify call has a userId in it.
-                        // analytics.identify(traits); // if userId is not present, leave it out of the identify call
+                        // let userId = '000011234543234'; // could be the studentId or employeeid 
+                        // analytics.identify(userId, traits); // this identify call has a userId in it.
+                        analytics.identify(traits); // if userId is not present, leave it out of the identify call
                         // Second, call the track event to record the fact that the user performed an important action
                         let properties = {
                             form_name : document.getElementById('form_name').value
@@ -152,6 +145,14 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         window.onload=function(){
                             timer=0;
                             timerStart=Date.now();
+                        }
+                        //G-forms
+                        var gFormWrappers = Array.prototype.slice.call(document.querySeletorAll('.gform_wrapper'), 0);
+                        if(gFormWrappers&&gFormWrappers.length>0){
+                            gFormWrappers.forEach((wrapper)=>{
+                                let form=wrapper.querySelector('form')
+                                form.addEventListerner("submit",this.formSubmitted(form,event));
+                            })
                         }
                         // this code will result in a Segment track event firing when the link is clicked
                         var links = Array.prototype.slice.call(document.getElementsByTagName('a'), 0);
