@@ -122,7 +122,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         timer=Math.floor((Date.now()-timerStart)/1000);
                         let form=event.target;
                         let formName=form.querySelector('.gform_heading')?form.querySelector('.gform_heading>.gform_title').innerHTML:document.querySelector('h1').innerHTML;
-                        // First, call the identify event and include any important user profile trait values
                         let messages=Array.prototype.slice.call(form.querySelectorAll('.validation_message'),0);
                         if(messages&&messages.length>0){
                             let messageText='';
@@ -142,7 +141,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 email : form.querySelector('.name_last > input').value || null
                             };
                             analytics.identify(traits); 
-                            // Second, call the track event to record the fact that the user performed an important action
                             let properties = {
                                 form_name : formName,
                                 time_on_page:timer
