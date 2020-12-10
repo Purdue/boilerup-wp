@@ -148,8 +148,10 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                     },
                     init: function() {
                         var timer;
+                        var timerStart;
                         window.onload=function(){
                             timer=0;
+                            timerStart=Date.now();
                         }
                         // this code will result in a Segment track event firing when the link is clicked
                         var links = Array.prototype.slice.call(document.getElementsByTagName('a'), 0);
@@ -161,7 +163,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 let scrollDepth=link.getBoundingClientRect().top>=windowHeight?link.getBoundingClientRect().top-windowHeight:0;
                                 link.addEventListener('click',function(){
                                     event.preventDefault();
-                                    timer=new Date()-timer;
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
                                     if(ext&&ext!=="edu"&&ext!=="com"&&ext!=="org"&&ext!=="net"&&ext!=="php"&&ext!=="html"){
                                         analytics.track('Download Link Clicked', {
                                             text: link.innerText,
