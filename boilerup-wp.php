@@ -116,42 +116,50 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             
             <script>
                 var segment_purdue = {
-                    formSubmitted: function(form,event){
-                            
+                    formSubmitted: function(event){
+  
                         event.preventDefault();
+                        timer=Math.floor((Date.now()-timerStart)/1000);
+                        let form=event.target;
+                        let formName=form.querySelector('.gform_heading')?form.querySelector('.gform_heading>.gform_title').innerHTML:document.querySelector('h1').innerHTML;
                         // First, call the identify event and include any important user profile trait values
-                        let traits = {
-                            first_name : form.querySelector('.name_first > input').value || null,
-                            last_name : form.querySelector('.name_last > input').value || null,
-                            email : form.querySelector('.name_last > input').value || null
-                        };
-                        // let userId = '000011234543234'; // could be the studentId or employeeid 
-                        // analytics.identify(userId, traits); // this identify call has a userId in it.
-                        analytics.identify(traits); // if userId is not present, leave it out of the identify call
-                        // Second, call the track event to record the fact that the user performed an important action
-                        let properties = {
-                            form_name : document.getElementById('form_name').value
-                        }
-                        analytics.track('Form Submitted', properties);
-
+                        let messages=Array.prototype.slice.call(form.querySelectorAll('.validation_message'),0);
+                        if(messages&&messages.length>0){
+                            let messageText='';
+                            messages.forEach((message)=>{
+                                messageText=messageText+message.innerHTML+"\n";
+                            })
+                            let properties = {
+                                form_name : formName,
+                                time_on_page:timer,
+                                validation_message:messageText
+                            }
+                            analytics.track('Form Submit Failed', properties);
+                        }else{
+                            let traits = {
+                                first_name : form.querySelector('.name_first > input').value || null,
+                                last_name : form.querySelector('.name_last > input').value || null,
+                                email : form.querySelector('.name_last > input').value || null
+                            };
+                            analytics.identify(traits); 
+                            // Second, call the track event to record the fact that the user performed an important action
+                            let properties = {
+                                form_name : formName,
+                                time_on_page:timer
+                            }
+                            analytics.track('Form Submitted', properties);
+                        }   
                         setTimeout(function(){ 
-                            document.getElementById('form_name').submit()
-                        }, 300);
-                    
+                            form.submit()
+                        }, 300);                 
                     },
                     init: function() {
-                        var timer;
-                        var timerStart;
-                        window.onload=function(){
-                            timer=0;
-                            timerStart=Date.now();
-                        }
                         //G-forms
-                        var gFormWrappers = Array.prototype.slice.call(document.querySeletorAll('.gform_wrapper'), 0);
+                        var gFormWrappers = Array.prototype.slice.call(document.querySelectorAll('.gform_wrapper'), 0);
                         if(gFormWrappers&&gFormWrappers.length>0){
                             gFormWrappers.forEach((wrapper)=>{
                                 let form=wrapper.querySelector('form')
-                                form.addEventListerner("submit",this.formSubmitted(form,event));
+                                form.addEventListener("submit",this.formSubmitted);
                             })
                         }
                         // this code will result in a Segment track event firing when the link is clicked
@@ -233,7 +241,12 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         }
                     }
                 }
-
+                var timer;
+                var timerStart;
+                window.onload=function(){
+                    timer=0;
+                    timerStart=Date.now();
+                }
                 analytics.ready(
                 segment_purdue.init()
                 );
