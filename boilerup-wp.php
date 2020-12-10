@@ -33,7 +33,8 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
-            add_action( 'wp_footer', array( __CLASS__, 'add_segment_form_identify' ), 5 );
+            // add_action( 'wp_footer', array( __CLASS__, 'add_segment_form_identify' ), 5 );
+            add_action( 'wp_footer', array( __CLASS__, 'add_segment_body_code' ));
             add_action( 'wp_head', array( __CLASS__, 'add_segment_code' ), 5 );
             add_action( 'wp_head', array( __CLASS__, 'add_header_icons' ) );
             add_action( 'login_enqueue_scripts', array( __CLASS__, 'my_login_logo') );
@@ -110,7 +111,134 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
             <?php
         }
+        public static function add_segment_body_code() {
+            ?>
+            
+            <script>
+                var segment_purdue = {
+                    formSubmitted: function(event){
+                            
+                        event.preventDefault();
+                        // First, call the identify event and include any important user profile trait values
+                        let traits = {
+                            first_name : document.getElementById('form-first_name').value,
+                            last_name : document.getElementById('form-last_name').value,
+                            email : document.getElementById('form-email').value,
+                            address : {
+                                street : document.getElementById('form-street').value,
+                                city : document.getElementById('form-city').value,
+                                phone : document.getElementById('form-phone').value,
+                                postalCode : document.getElementById('form-zip_code').value,
+                                country : document.getElementById('form-form-country').value
+                            }
+                        };
+                        let userId = '000011234543234'; // could be the studentId or employeeid 
+                        analytics.identify(userId, traits); // this identify call has a userId in it.
+                        // analytics.identify(traits); // if userId is not present, leave it out of the identify call
+                        // Second, call the track event to record the fact that the user performed an important action
+                        let properties = {
+                            form_name : document.getElementById('form_name').value
+                        }
+                        analytics.track('Form Submitted', properties);
 
+                        setTimeout(function(){ 
+                            document.getElementById('form_name').submit()
+                        }, 300);
+                    
+                    },
+                    init: function() {
+                        var timer;
+                        window.onload=function(){
+                            timer=0;
+                        }
+                        // this code will result in a Segment track event firing when the link is clicked
+                        var links = Array.prototype.slice.call(document.getElementsByTagName('a'), 0);
+                        const windowHeight=window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+                        if(links&&links.length>0){
+                            links.forEach((link)=>{
+                                let href=link.href;
+                                let ext=href.substring(href.lastIndexOf("/")+1).split('.').pop();
+                                let scrollDepth=link.getBoundingClientRect().top>=windowHeight?link.getBoundingClientRect().top-windowHeight:0;
+                                link.addEventListener('click',function(){
+                                    event.preventDefault();
+                                    timer=new Date()-timer;
+                                    if(ext&&ext!=="edu"&&ext!=="com"&&ext!=="org"&&ext!=="net"&&ext!=="php"&&ext!=="html"){
+                                        analytics.track('Download Link Clicked', {
+                                            text: link.innerText,
+                                            destination_href:href,
+                                            file_type: ext,
+                                            time_on_page:timer,
+                                            scroll_depth:scrollDepth
+                                        });
+                                    }
+                                    if(href.substring(0,href.indexOf(":")+1)==="mailto:"){
+                                        analytics.track('Email Link Clicked', {
+                                            destination_href:href,
+                                            time_on_page:timer
+                                        });
+                                    }else if(href.substring(0,href.indexOf(":")+1)==="tel:"){
+                                        analytics.track('Phone Link Clicked', {
+                                            destination_href:href,
+                                            time_on_page:timer
+                                        });
+                                    }
+                                    if(link.host&&link.host!==""&&link.host!==window.location.host){
+                                        if(link.host.indexOf("www.facebook.com")!==-1||
+                                            link.host.indexOf("www.twitter.com")!==-1||
+                                            link.host.indexOf("www.instagram.com")!==-1||
+                                            link.host.indexOf("www.snapchat.com")!==-1||
+                                            link.host.indexOf("www.linkedin.com")!==-1||
+                                            link.host.indexOf("www.youtube.com")!==-1||
+                                            link.host.indexOf("www.pinterest.com")!==-1||
+                                            link.host.indexOf("www.amazon.com")!==-1){
+                                                analytics.track('social Link Clicked', {
+                                                destination_href:href,
+                                                time_on_page:timer
+                                            });
+                                        }else{
+                                            analytics.track('External Link Clicked', {
+                                                text: link.innerText,
+                                                destination_href:href,
+                                                time_on_page:timer,
+                                                scroll_depth:scrollDepth
+                                            });
+                                        }
+
+                                    }
+                                    if(link.classList.contains('pu-cta-banner-gray__desc')||
+                                        link.classList.contains('pu-cta-banner-image__button')||
+                                        link.classList.contains('pu-cta-banner-gold__button')||
+                                        link.classList.contains('pu-cta-banner-black__button')||
+                                        link.classList.contains('cta-card__button')||
+                                        link.classList.contains('cta-card-small')||
+                                        link.classList.contains('pu-cta-hero__button')||
+                                        link.classList.contains('pu-feature-story__button')||
+                                        link.classList.contains('pu-proofpoint__button')||
+                                        link.classList.contains('cta-button')){
+                                        analytics.track('CTA Link Clicked', {
+                                            text: link.innerText,
+                                            destination_href:link.href,
+                                            time_on_page:timer,
+                                            scroll_depth:scrollDepth
+                                        });
+                                    }
+                                    setTimeout(function(){ 
+                                        window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
+                                    }, 300);
+                                })
+                            })
+                        }
+                    }
+                }
+
+                analytics.ready(
+                segment_purdue.init()
+                );
+
+            </script>
+
+            <?php
+        }
         public static function add_header_icons() {
             ?>
 
