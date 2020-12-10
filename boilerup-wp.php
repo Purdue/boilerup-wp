@@ -116,36 +116,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             
             <script>
                 var segment_purdue = {
-                    formSubmitted: function(event){
-                            
-                        event.preventDefault();
-                        // First, call the identify event and include any important user profile trait values
-                        let traits = {
-                            first_name : document.getElementById('form-first_name').value,
-                            last_name : document.getElementById('form-last_name').value,
-                            email : document.getElementById('form-email').value,
-                            address : {
-                                street : document.getElementById('form-street').value,
-                                city : document.getElementById('form-city').value,
-                                phone : document.getElementById('form-phone').value,
-                                postalCode : document.getElementById('form-zip_code').value,
-                                country : document.getElementById('form-form-country').value
-                            }
-                        };
-                        let userId = '000011234543234'; // could be the studentId or employeeid 
-                        analytics.identify(userId, traits); // this identify call has a userId in it.
-                        // analytics.identify(traits); // if userId is not present, leave it out of the identify call
-                        // Second, call the track event to record the fact that the user performed an important action
-                        let properties = {
-                            form_name : document.getElementById('form_name').value
-                        }
-                        analytics.track('Form Submitted', properties);
-
-                        setTimeout(function(){ 
-                            document.getElementById('form_name').submit()
-                        }, 300);
-                    
-                    },
                     init: function() {
                         var timer;
                         var timerStart;
