@@ -153,7 +153,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                     },
                     init: function() {
                         //G-forms
-                        var gFormWrappers = Array.prototype.slice.call(document.querySelectorAll('.gform_wrapper'), 0);
+                        const gFormWrappers = Array.prototype.slice.call(document.querySelectorAll('.gform_wrapper'), 0);
                         if(gFormWrappers&&gFormWrappers.length>0){
                             gFormWrappers.forEach((wrapper)=>{
                                 let form=wrapper.querySelector('form')
@@ -161,8 +161,11 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             })
                         }
                         // this code will result in a Segment track event firing when the link is clicked
-                        var links = Array.prototype.slice.call(document.getElementsByTagName('a'), 0);
+                        const links = Array.prototype.slice.call(document.getElementsByTagName('a'), 0);
                         const windowHeight=window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+                        const h1=document.querySelector('h1');
+                        const h1Text=h1.innerHTML;
+
                         if(links&&links.length>0){
                             links.forEach((link)=>{
                                 let href=link.href;
@@ -231,6 +234,32 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             scroll_depth:scrollDepth
                                         });
                                     }
+                                    //Search Results Page
+                                    if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')){
+                                        if(link.parentElement.classList.contains("search-post-title")||link.classList.contains("gs-title")){
+                                            let pageN=1;
+                                            if(document.querySelector('.gsc-cursor-current-page')){
+                                                pageN=document.querySelector('.gsc-cursor-current-page').innerHTML;
+                                            }else if(document.querySelector('.pagination>.nav-links>.current')){
+                                                pageN=document.querySelector('.pagination>.nav-links>.current').innerHTML;
+                                            }
+                                            function getParameterByName(name, url = window.location.href) {
+                                                name = name.replace(/[\[\]]/g, '\\$&');
+                                                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                                                    results = regex.exec(url);
+                                                if (!results) return null;
+                                                if (!results[2]) return '';
+                                                return decodeURIComponent(results[2].replace(/\+/g, ' '));
+                                            }
+                                            analytics.track('Search Results Page', {
+                                                text: link.innerText,
+                                                query: getParameterByName('s')||getParameterByName('q'),
+                                                page_number:pageN,
+                                                time_on_page:timer,
+                                                scroll_depth:scrollDepth
+                                            });
+                                        }
+                                    }
                                     setTimeout(function(){ 
                                         window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
                                     }, 300);
@@ -238,13 +267,26 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             })
                         }
                         //404 page 
-                        const h1=document.querySelector('h1').innerHTML;
-                        if(h1==="Page Not Found"){
+                        if(h1Text==="Page Not Found"){
                             analytics.track('404 Page Viewed', {
                                 page_href: window.location.href,
                                 referrer: document.referrer
                             });
                         }
+                        //Search performed
+                        const searchForms=Array.prototype.slice.call(document.getElementsByName('searchform'),0);
+                        searchForms.forEach((form)=>{
+                            form.addEventListener('submit',function(event){
+                                event.preventDefault();
+                                let phrase=event.target.querySelector('.search-field').value || null;
+                                analytics.track("Site Search Performed", {
+                                    query:phrase
+                                })
+                                setTimeout(function(){ 
+                                    form.submit()
+                                }, 300);  
+                            })
+                        })
                     }
                 }
                 var timer;
