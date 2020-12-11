@@ -237,6 +237,14 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 })
                             })
                         }
+                        //404 page 
+                        const h1=document.querySelector('h1').innerHTML;
+                        if(h1==="Page Not Found"){
+                            analytics.track('404 Page Viewed', {
+                                page_href: window.location.href,
+                                referrer: document.referrer
+                            });
+                        }
                     }
                 }
                 var timer;
