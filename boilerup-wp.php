@@ -113,7 +113,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
         }
         public static function add_segment_body_code() {
             ?>
-            
+
             <script>
                 var segment_purdue = {
                     formSubmitted: function(event){
@@ -287,6 +287,348 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 }, 300);  
                             })
                         })
+
+                        //Embeded videos
+                        var youtubePlayers=[];
+                        var vimeoPlayers=[];
+                        
+                        window.onload=function(){
+                                                           
+                           const embed=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed.is-type-video'),0);
+                            var youtube=[], vimeo=[], dmotion=[], tiktok=[];
+                            embed.forEach((embed)=>{
+                                let iframe=embed.querySelector('iframe')
+                                if(embed.classList.contains('is-provider-youtube')){
+                                    youtube.push(iframe)
+                                }else if(embed.classList.contains('is-provider-vimeo')){
+                                    vimeo.push(iframe)
+                                }else if(embed.classList.contains('is-provider-dailymotion')){
+                                    dmotion.push(iframe)
+                                }else if(embed.classList.contains('is-provider-tiktok')){
+                                    tiktok.push(iframe)
+                                }
+                            })
+                            //YouTube videos
+                            if(youtube&&youtube.length>0){
+                                let tag = document.createElement('script');
+                                tag.src = "https://www.youtube.com/iframe_api";
+                                let firstScriptTag = document.getElementsByTagName('script')[0];
+                                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                                let checkYT = setInterval(function () {
+                                    if(YT&&YT.loaded){
+                                        youtube.forEach((iframe)=>{                                           
+                                            if(iframe.src.indexOf("&origin=")!==-1){
+                                                    iframe.src=iframe.src.substring(0,iframe.src.indexOf("&origin"))
+                                            }
+                                                                              
+                                            var player=new YT.Player( iframe.id, {
+                                                events: { 
+                                                    'onReady': onPlayerReady,
+                                                    'onStateChange': onPlayerStateChange 
+                                                }
+                                            }); 
+                                           
+                                            youtubePlayers.push({
+                                                "id" : iframe.id,
+                                                "player" : player
+                                            });                             
+                                        })
+                                        
+                                       clearInterval(checkYT);
+                                    }
+                                }, 100);
+                                checkYT;
+                            }
+                            //Vimeo videos
+                            if(vimeo&&vimeo.length>0){
+                                let tag = document.createElement('script');
+                                tag.src = "https://player.vimeo.com/api/player.js";
+                                let firstScriptTag = document.getElementsByTagName('script')[0];
+                                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                                let checkVimeo = setInterval(function () {
+                                    if(Vimeo){
+                                        vimeo.forEach((iframe)=>{ 
+                                            var url=iframe.src
+                                            var percent=0;
+                                            var player = new Vimeo.Player(iframe);
+                                      
+                                            async function viemoPlay(){
+                                                try {
+                                                    const [title, duration] = await Promise.all([
+                                                        player.getVideoTitle(),
+                                                        player.getDuration(),
+                                                    ]);
+                                                    player.on('play', function(event) {
+                                                        trackPlay("Vimeo",title,Math.round(event.seconds),duration,url);
+                                                    });
+                                                    player.on('pause', function(event) {
+                                                        if(Math.round(event.seconds)!==duration){
+                                                            trackPause("Vimeo",title,Math.round(event.seconds),duration,url);
+                                                        }
+                                                       
+                                                    });
+                                                    player.on('ended', function(event) {
+                                                        trackComplete("Vimeo",title,Math.round(event.seconds),duration,url);
+                                                    });
+                                                  
+                                                    var lastTime=0;
+                                                    var currentTime=0;
+                                                    var seekStart = null;
+                                                    player.on('seeking', function(event) {
+                                                        if(seekStart === null){
+                                                            seekStart=lastTime
+                                                            trackSeek("Vimeo",title,Math.round(event.seconds),duration,url);   
+                                                        }
+
+                                                    });
+                                                    player.on('seeked', function(event) {
+                                                        seekStart = null;
+                                                    });
+                                                    player.on("timeupdate", function(event){
+                                    
+                                                        let percent_new=Math.round(event.seconds/duration*100);
+                                                        if(percent_new!==percent){
+                                                            percent=percent_new;
+                                                            if(percent===25||percent===50||percent===75||percent===90){
+                                                                percentage=percent+'%'
+                                                                trackProgress("Vimeo",title,Math.round(event.seconds),duration,url,percentage)
+                                                            }
+                                                        }
+                                                        lastTime = currentTime;
+                                                        currentTime = event.seconds;
+                                                    })
+                                                  
+                                                } catch (err) {
+                                                    console.log(err);
+                                                }
+                                            }
+                                            viemoPlay()
+
+                                        })                                          
+                                        clearInterval(checkVimeo);
+                                    }
+                                }, 100);
+                                checkVimeo;
+                       
+                            }
+                            //Dailymotion videos
+                            if(dmotion&&dmotion.length>0){
+                                let tag = document.createElement('script');
+                                tag.src = "https://api.dmcdn.net/all.js";
+                                let firstScriptTag = document.getElementsByTagName('script')[0];
+                                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                                let checkDM = setInterval(function () {
+                                    if(DM){
+                                        dmotion.forEach((iframe)=>{ 
+                                            const url=iframe.src;
+                                            const videoID=url.substring(url.lastIndexOf('/')+1)
+                                            var duration;
+                                            var title;
+                                            var percent=0;
+                                            DM.api(
+                                                `/video/${videoID}`,
+                                                { fields: ['duration', 'title' ]},
+                                                result => {
+                                                    // result is an Object with all the fields wanted
+                                                    duration=result.duration;
+                                                    title=result.title;
+                                                }
+                                            )
+                                            var player =DM.player(iframe,{
+                                                video: videoID
+                                            });
+
+                                            player.addEventListener('play', function(event){
+                                                trackPlay("Daily Motion",title,Math.round(event.target.currentTime),duration,url);
+                                                
+                                            })
+                                            player.addEventListener('pause', function(event){
+                                                trackPause("Daily Motion",title,Math.round(event.target.currentTime),duration,url);
+                                                
+                                            })
+                                            player.addEventListener('seeking', function(){
+                                                trackSeek("Daily Motion",title,Math.round(event.target.currentTime),duration,url);
+                                            })
+                                            player.addEventListener('end', function(){
+                                                trackComplete("Daily Motion",title,Math.round(event.target.currentTime),duration,url);
+                                            })
+                                            player.addEventListener('timeupdate', function(){
+                                                let percent_new=Math.round(event.target.currentTime/duration*100);
+                                                if(percent_new!==percent){
+                                                    percent=percent_new;
+                                                    if(percent===25||percent===50||percent===75||percent===90){
+                                                        percentage=percent+'%'
+                                                        trackProgress("Daily Motion",title,Math.round(event.target.currentTime),duration,url,percentage)
+                                                    }
+                                                }
+                                            }) 
+
+                                        })                                          
+                                        clearInterval(checkDM);
+                                    }
+                                }, 100);
+                                checkDM;
+                       
+                            }
+                            //tiktok
+                            if(tiktok&&tiktok.length>0){
+                            }
+                        }
+                       
+                        window.onPlayerReady=function(event) {
+                            console.log(event.target)
+                            console.log("youtube player")
+                            var lastTime = -1;
+                            var lastState=-1;
+                            var interval = 1000;
+                            var percent = 0;
+                            const duration=event.target.getDuration();
+                            const title=event.target.getVideoData().title;
+                            const url=event.target.getVideoUrl();
+
+                            var checkPlayerTime = function () {
+                                if (lastTime !== -1) {
+                              
+                                    if(event.target.getPlayerState() === 1||(event.target.getPlayerState() === 2&&lastState===2)) {
+                                        if (Math.abs(event.target.getCurrentTime() - lastTime - 1) > 1) {
+                                            trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url)
+                                        }
+                                    }
+
+                                    let percent_new=Math.round(event.target.getCurrentTime()/duration*100);
+                                    if(percent_new!==percent){
+                                        percent=percent_new;
+                                        if(percent===25||percent===50||percent===75||percent===90){
+                                            percentage=percent+'%'
+                                            trackProgress("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,percentage)
+                                        }
+                                    }
+                                    
+                                }
+                                lastTime = event.target.getCurrentTime();
+                                lastState = event.target.getPlayerState();
+                                setTimeout(checkPlayerTime, interval); /// repeat function call in 1 second
+                            }
+                            setTimeout(checkPlayerTime, interval); /// initial call delayed 
+                        }  
+
+                        function onPlayerStateChange(event) {
+                            const duration=event.target.getDuration();
+                            const title=event.target.getVideoData().title;
+                            const url=event.target.getVideoUrl();
+                            switch(event.data) {
+                                case 0:
+                                    trackComplete("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url);
+                                    break;
+                                case 1:
+                                    trackPlay("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url);
+                                    break;
+                                case 2:
+                                    if(Math.round(event.target.getCurrentTime())!==duration){
+                                        trackPause("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url);
+                                    }
+                                    break;
+
+                            }
+                        }
+
+                        function trackPlay(player,title,position,length,url){
+                            analytics.track('Video Playback Started', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url
+                            });
+                        }
+                        function trackPause(player,title,position,length,url){
+                            analytics.track('Video Playback Paused', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url
+                            });
+                        }
+                        function trackSeek(player,title,position,length,url){
+                            analytics.track('Video Playback Seek', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url
+                            });
+                        }
+                        function trackComplete(player,title,position,length,url){
+                            analytics.track('Video Playback Completed', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                video_progress:'100%'
+                            });
+                        }
+                        function trackProgress(player,title,position,length,url,progress){
+                            analytics.track('Video Playback Progress', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                video_progress:progress
+                            });
+                        }
+                        //Uploaded videos
+                        const videos=Array.prototype.slice.call(document.querySelectorAll('.wp-block-video video'));
+                        if(videos&&videos.length>0){
+                            videos.forEach((video)=>{
+                                var duration;
+                                var percent=0;
+                                const title=video.nextElementSibling.innerHTML?video.nextElementSibling.innerHTML:'';
+                                const url=video.src;
+                                const ext=url.substring(url.lastIndexOf("/")+1).split('.').pop();
+                                video.addEventListener("play", (event)=>{
+                                    duration=video.duration;
+                                    trackPlay(ext,title,Math.round(event.target.currentTime),Math.round(duration),url);
+                                })
+                                video.addEventListener("pause", (event)=>{
+                                    if(video.currentTime!==duration&&video.currentTime!==0){
+                                        trackPause(ext,title,Math.round(event.target.currentTime),Math.round(duration),url);
+                                    }
+                                })
+                                var lastTime=0;
+                                var currentTime=0;
+                                var seekStart = null;
+                                video.addEventListener("seeking", (event)=>{  
+                                    
+                                    if(seekStart === null){
+                                        seekStart=lastTime
+                                        trackSeek(ext,title,Math.round(seekStart),Math.round(duration),url);   
+                                    }
+            
+                                })
+                                video.addEventListener("seeked", (event)=>{  
+                                    seekStart = null;
+                                })
+                                video.addEventListener("ended", (event)=>{
+                                    trackComplete(ext,title,Math.round(event.target.currentTime),Math.round(duration),url);
+                                })
+                                video.addEventListener("timeupdate", (event)=>{
+                                    
+                                    let percent_new=Math.round(video.currentTime/duration*100);
+                                    if(percent_new!==percent){
+                                        percent=percent_new;
+                                        if(percent===25||percent===50||percent===75||percent===90){
+                                            percentage=percent+'%'
+                                            trackProgress(ext,title,Math.round(event.target.currentTime),Math.round(duration),url,percentage)
+                                        }
+                                    }
+                                    lastTime = currentTime;
+                                    currentTime = event.target.currentTime;
+                                })
+                            })
+                        }
                     }
                 }
                 var timer;
@@ -299,8 +641,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                 segment_purdue.init()
                 );
 
-            </script>
-
+            </script>           
             <?php
         }
         public static function add_header_icons() {
