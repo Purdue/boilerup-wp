@@ -311,21 +311,12 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
                             timer=0;
                             timerStart=Date.now();                      
-                            const embed=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed.is-type-video'),0);
-                            var youtube=[], vimeo=[], dmotion=[];
-                            embed.forEach((embed)=>{
-                                let iframe=embed.querySelector('iframe')
-                                if(embed.classList.contains('is-provider-youtube')){
-                                    youtube.push(iframe)
-                                }else if(embed.classList.contains('is-provider-vimeo')){
-                                    vimeo.push(iframe)
-                                }else if(embed.classList.contains('is-provider-dailymotion')){
-                                    dmotion.push(iframe)
-                                }
-                            })
+                            const youtube=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-youtube iframe'),0);
+                            const vimeo=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-vimeo iframe'),0);
+                            const dmotion=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-dailymotion iframe'),0);
+
                             //YouTube videos
                             if(youtube&&youtube.length>0){
-                                console.log(youtube)
                                 let tag = document.createElement('script');
                                 tag.src = "https://www.youtube.com/iframe_api";
                                 let firstScriptTag = document.getElementsByTagName('script')[0];
@@ -336,16 +327,22 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             if(iframe.src.indexOf("&origin=")!==-1){
                                                     iframe.src=iframe.src.substring(0,iframe.src.indexOf("&origin"))
                                             }
-                                                                              
+                                            if(iframe.src.indexOf("&enablejsapi=1")===-1){
+                                                    iframe.src=iframe.src+"&enablejsapi=1"
+                                            }
+                                            
+                                            if(!iframe.id){
+                                                iframe.id="youtube"+iframe.src.split( 'embed/' )[1].split( '?' )[0]
+                                            }                                 
                                             var player=new YT.Player( iframe.id, {
+                                                videoId:iframe.src.split( 'embed/' )[1].split( '?' )[0],
                                                 events: { 
                                                     'onReady': onPlayerReady,
                                                     'onStateChange': onPlayerStateChange 
                                                 }
                                             }); 
-                                           
                                             youtubePlayers.push({
-                                                "id" : iframe.id,
+                                                "id" :iframe.id,
                                                 "player" : player
                                             });                             
                                         })
@@ -526,6 +523,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         }  
 
                         function onPlayerStateChange(event) {
+                            console.log('state change')
                             const duration=event.target.getDuration();
                             const title=event.target.getVideoData().title;
                             const url=event.target.getVideoUrl();
