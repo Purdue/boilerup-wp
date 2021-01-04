@@ -123,6 +123,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         let form=event.target;
                         let formName=form.querySelector('.gform_heading')?form.querySelector('.gform_heading>.gform_title').innerHTML:document.querySelector('h1').innerHTML;
                         let messages=Array.prototype.slice.call(form.querySelectorAll('.validation_message'),0);
+
                         if(messages&&messages.length>0){
                             let messageText='';
                             messages.forEach((message)=>{
@@ -152,6 +153,10 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         }, 300);                 
                     },
                     init: function() {
+                        let session_search=sessionStorage.getItem('total_searches');
+                        !session_search?sessionStorage.setItem('total_searches', '0'):'';   
+                        var timer;
+                        var timerStart;
                         //G-forms
                         const gFormWrappers = Array.prototype.slice.call(document.querySelectorAll('.gform_wrapper'), 0);
                         if(gFormWrappers&&gFormWrappers.length>0){
@@ -164,17 +169,20 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         const links = Array.prototype.slice.call(document.getElementsByTagName('a'), 0);
                         const windowHeight=window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
                         const h1=document.querySelector('h1');
-                        const h1Text=h1.innerHTML;
+                        const h1Text=h1?h1.innerHTML:'';
+                        
 
                         if(links&&links.length>0){
                             links.forEach((link)=>{
                                 let href=link.href;
-                                let ext=href.substring(href.lastIndexOf("/")+1).split('.').pop();
+                                // let ext=href.substring(href.lastIndexOf("/")+1).split('.').pop();
+                                let ext=href.split("?")[0].split("#")[0].split('.').pop();
                                 let scrollDepth=link.getBoundingClientRect().top>=windowHeight?link.getBoundingClientRect().top-windowHeight:0;
                                 link.addEventListener('click',function(){
                                     event.preventDefault();
                                     timer=Math.floor((Date.now()-timerStart)/1000);
-                                    if(ext&&ext!=="edu"&&ext!=="com"&&ext!=="org"&&ext!=="net"&&ext!=="php"&&ext!=="html"){
+
+                                    if(ext&&ext!=="edu"&&ext!=="com"&&ext!=="org"&&ext!=="net"&&ext!=="php"&&ext!=="html"&&ext!=="edu"&&ext!=="aspx"){
                                         analytics.track('Download Link Clicked', {
                                             text: link.innerText,
                                             destination_href:href,
@@ -226,7 +234,8 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         link.classList.contains('pu-cta-hero__button')||
                                         link.classList.contains('pu-feature-story__button')||
                                         link.classList.contains('pu-proofpoint__button')||
-                                        link.classList.contains('cta-button')){
+                                        link.classList.contains('cta-button')||
+                                        link.parentElement.parentElement.parentElement.classList.contains('navbar-end')){
                                         analytics.track('CTA Link Clicked', {
                                             text: link.innerText,
                                             destination_href:link.href,
@@ -278,9 +287,15 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         searchForms.forEach((form)=>{
                             form.addEventListener('submit',function(event){
                                 event.preventDefault();
+                                timer=Math.floor((Date.now()-timerStart)/1000);
                                 let phrase=event.target.querySelector('.search-field').value || null;
+                                let searches = sessionStorage.getItem('total_searches');
+                                searches = parseInt(searches)+1;
+                                sessionStorage.setItem('total_searches', searches);
                                 analytics.track("Site Search Performed", {
-                                    query:phrase
+                                    query:phrase,
+                                    total_searches:searches,
+                                    time_on_page:timer
                                 })
                                 setTimeout(function(){ 
                                     form.submit()
@@ -293,9 +308,11 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         var vimeoPlayers=[];
                         
                         window.onload=function(){
-                                                           
-                           const embed=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed.is-type-video'),0);
-                            var youtube=[], vimeo=[], dmotion=[], tiktok=[];
+
+                            timer=0;
+                            timerStart=Date.now();                      
+                            const embed=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed.is-type-video'),0);
+                            var youtube=[], vimeo=[], dmotion=[];
                             embed.forEach((embed)=>{
                                 let iframe=embed.querySelector('iframe')
                                 if(embed.classList.contains('is-provider-youtube')){
@@ -304,12 +321,11 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                     vimeo.push(iframe)
                                 }else if(embed.classList.contains('is-provider-dailymotion')){
                                     dmotion.push(iframe)
-                                }else if(embed.classList.contains('is-provider-tiktok')){
-                                    tiktok.push(iframe)
                                 }
                             })
                             //YouTube videos
                             if(youtube&&youtube.length>0){
+                                console.log(youtube)
                                 let tag = document.createElement('script');
                                 tag.src = "https://www.youtube.com/iframe_api";
                                 let firstScriptTag = document.getElementsByTagName('script')[0];
@@ -470,9 +486,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 checkDM;
                        
                             }
-                            //tiktok
-                            if(tiktok&&tiktok.length>0){
-                            }
                         }
                        
                         window.onPlayerReady=function(event) {
@@ -631,14 +644,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         }
                     }
                 }
-                var timer;
-                var timerStart;
-                window.onload=function(){
-                    timer=0;
-                    timerStart=Date.now();
-                }
+
                 analytics.ready(
-                segment_purdue.init()
+                    segment_purdue.init()
                 );
 
             </script>           
