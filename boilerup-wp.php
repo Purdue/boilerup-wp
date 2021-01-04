@@ -182,7 +182,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                     event.preventDefault();
                                     timer=Math.floor((Date.now()-timerStart)/1000);
 
-                                    if(ext&&ext!=="edu"&&ext!=="com"&&ext!=="org"&&ext!=="net"&&ext!=="php"&&ext!=="html"&&ext!=="edu"&&ext!=="aspx"){
+                                    if(ext&&ext!=="edu"&&ext!=="edu/"&&ext!=="com"&&ext!=="com/"&&ext!=="org"&&ext!=="org/"&&ext!=="net"&&ext!=="net/"&&ext!=="php"&&ext!=="php"&&ext!=="html"&&ext!=="aspx"){
                                         analytics.track('Download Link Clicked', {
                                             text: link.innerText,
                                             destination_href:href,
