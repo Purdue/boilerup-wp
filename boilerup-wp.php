@@ -175,8 +175,8 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         if(links&&links.length>0){
                             links.forEach((link)=>{
                                 let href=link.href;
-                                // let ext=href.substring(href.lastIndexOf("/")+1).split('.').pop();
-                                let ext=href.split("?")[0].split("#")[0].split('.').pop();
+                                let ext_name=href.split('?')[0].split('/').pop()
+                                let ext=ext_name.indexOf(".")!==-1?ext_name.substring(ext_name.lastIndexOf('.')+1):null
                                 let scrollDepth=link.getBoundingClientRect().top>=windowHeight?link.getBoundingClientRect().top-windowHeight:0;
                                 link.addEventListener('click',function(){
                                     event.preventDefault();
