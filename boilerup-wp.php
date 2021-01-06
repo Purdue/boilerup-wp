@@ -265,7 +265,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
                                     if(ext&&ext!=="edu"&&ext!=="edu/"&&ext!=="com"&&ext!=="com/"&&ext!=="org"&&ext!=="org/"&&ext!=="net"&&ext!=="net/"&&ext!=="php"&&ext!=="php"&&ext!=="html"&&ext!=="aspx"){
                                         analytics.track('Download Link Clicked', {
-                                            text: link.innerText,
+                                            click_text: link.innerText,
                                             destination_href:href,
                                             file_type: ext,
                                             time_on_page:timer,
@@ -298,7 +298,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             });
                                         }else{
                                             analytics.track('External Link Clicked', {
-                                                text: link.innerText,
+                                                click_text: link.innerText,
                                                 destination_href:href,
                                                 time_on_page:timer,
                                                 scroll_depth:scrollDepth
@@ -318,7 +318,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         link.classList.contains('cta-button')||
                                         link.parentElement.parentElement.parentElement.classList.contains('navbar-end')){
                                         analytics.track('CTA Link Clicked', {
-                                            text: link.innerText,
+                                            click_text: link.innerText,
                                             destination_href:link.href,
                                             time_on_page:timer,
                                             scroll_depth:scrollDepth
@@ -342,7 +342,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                 return decodeURIComponent(results[2].replace(/\+/g, ' '));
                                             }
                                             analytics.track('Search Results Page', {
-                                                text: link.innerText,
+                                                click_text: link.innerText,
                                                 query: getParameterByName('s')||getParameterByName('q'),
                                                 page_number:pageN,
                                                 time_on_page:timer,
