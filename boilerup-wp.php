@@ -199,8 +199,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             })
                             let traits = {
                                 user_type : user_type,
-                                student_type: student_type,
-                                employee_type: employee_type,
                                 is_donor : is_donor,
                                 is_alumni : is_alumni,
                                 first_name : first_name,
@@ -224,6 +222,12 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 parent_email : parent_email,
                                 parent_relationship_to_student : parent_relationship_to_student
                             };
+                            if(student_type!==""){
+                                traits.student_type=student_type;
+                            }
+                            if(employee_type!==""){
+                                traits.employee_type=employee_type;
+                            }
                             analytics.identify(traits); 
                             let properties = {
                                 form_name : formName,
