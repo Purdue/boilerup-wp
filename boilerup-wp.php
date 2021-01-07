@@ -139,95 +139,66 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             analytics.track('Form Submit Failed', properties);
                         }else{
 
-                            let user_type="", student_type="",employee_type="",is_donor=false,is_alumni=false, 
-                            first_name="", last_name="",birth_day="", birth_month="",birth_year="", age="", phone="", email="",
-                            student_country_origin="",student_state_origin="",address_postcode="",address_state="",
-                            start_year="",enrolement_type="", interested_in_college=[],career_interests=[],
-                            parent_first_name="", parent_last_name="",parent_email="",parent_relationship_to_student="";
+                            let traits = {
+                                first_name : '',
+                                last_name : '',
+                                phone : '',
+                                email : '',
+                            };
 
                             let labels = Array.prototype.slice.call(form.querySelectorAll('.gfield_label'),0);
                             labels.forEach((label)=>{
                                 let labelContent=label.textContent.charAt(label.textContent.length-1)==="*"?label.textContent.substring(0,label.textContent.length-1):label.textContent;
                                 let sibling=label.nextElementSibling
                                 if(labelContent==="User Type"){
-                                    user_type=sibling.querySelector('select').value
-                                }else if(labelContent==="Student Type"&&user_type==="Student"){
-                                    student_type=sibling.querySelector('select').value
-                                }else if(labelContent==="Employee Type"&&user_type==="Employee"){
-                                    employee_type=sibling.querySelector('select').value
+                                    traits.user_type=sibling.querySelector('select').value
+                                }else if(labelContent==="Student Type"&&traits.user_type==="Student"){
+                                    traits.student_type=sibling.querySelector('select').value
+                                }else if(labelContent==="Employee Type"&&traits.user_type==="Employee"){
+                                    traits.employee_type=sibling.querySelector('select').value
                                 }else if(labelContent==="Are you a donor?"){
-                                    is_donor=sibling.querySelector('select').value==="Yes"?true:false
+                                    traits.is_donor=sibling.querySelector('select').value==="Yes"?true:false
                                 }else if(labelContent==="Are you an alumini?"){
-                                    is_alumni=sibling.querySelector('select').value==="Yes"?true:false
+                                    traits.is_alumni=sibling.querySelector('select').value==="Yes"?true:false
                                 }else if(labelContent==="Student Name"){
-                                    first_name=sibling.querySelector('.name_first>input').value
-                                    last_name=sibling.querySelector('.name_last>input').value
+                                    traits.first_name=sibling.querySelector('.name_first>input').value
+                                    traits.last_name=sibling.querySelector('.name_last>input').value
                                 }else if(labelContent==="Birthdate"){
-                                    birth_month=sibling.querySelector('.gfield_date_month>input').value
-                                    birth_day=sibling.querySelector('.gfield_date_day>input').value
-                                    birth_year=sibling.querySelector('.gfield_date_year>input').value
-                                    let birthday=birth_year+"-"+birth_month+"-"+birth_day
-                                    console.log(Date.parse(birthday))
-                                    age=Math.round((Date.now()-Date.parse(birthday))/31536000000)
+                                    traits.birth_month=sibling.querySelector('.gfield_date_month>input').value
+                                    traits.birth_day=sibling.querySelector('.gfield_date_day>input').value
+                                    traits.birth_year=sibling.querySelector('.gfield_date_year>input').value
+                                    let birthday=traits.birth_year+"-"+traits.birth_month+"-"+traits.birth_day
+                                    traits.age=Math.round((Date.now()-Date.parse(birthday))/31536000000)
                                 }else if(labelContent==="Phone"){
-                                    phone=sibling.querySelector('input').value
+                                    traits.phone=sibling.querySelector('input').value
                                 }else if(labelContent==="Student's Email"){
-                                    email=sibling.querySelector('input').value
+                                    traits.email=sibling.querySelector('input').value
                                 }else if(labelContent==="Address"){
-                                    student_country_origin=sibling.querySelector('.address_country>select').value
-                                    student_state_origin=sibling.querySelector('.address_state>input').value
-                                    address_postcode=sibling.querySelector('.address_zip>input').value
-                                    address_state=student_state_origin
+                                    traits.student_country_origin=sibling.querySelector('.address_country>select').value
+                                    traits.student_state_origin=sibling.querySelector('.address_state>input').value
+                                    traits.address_postcode=sibling.querySelector('.address_zip>input').value
+                                    traits.address_state=traits.student_state_origin
                                 }else if(labelContent==="Start Year"){
-                                    start_year=sibling.querySelector('select').value
+                                    traits.start_year=sibling.querySelector('select').value
                                 }else if(labelContent==="Enrollment Type"){
-                                    enrolement_type=sibling.querySelector('select').value
+                                    traits.enrolement_type=sibling.querySelector('select').value
                                 }else if(labelContent==="Purdue disciplinary college in which you are interested"){
-                                    interested_in_college=[...sibling.querySelector('select').options].filter(option => option.selected)
+                                    traits.interested_in_college=[...sibling.querySelector('select').options].filter(option => option.selected)
                                                         .map(option => option.value)
                                 }else if(labelContent==="Career Interests"){
-                                    career_interests=[...sibling.querySelector('select').options].filter(option => option.selected)
+                                    traits.career_interests=[...sibling.querySelector('select').options].filter(option => option.selected)
                                                         .map(option => option.value)
                                 }else if(labelContent==="Parent Name"){
-                                    parent_first_name=sibling.querySelector('.name_first>input').value
-                                    parent_last_name=sibling.querySelector('.name_last>input').value
+                                    traits.parent_first_name=sibling.querySelector('.name_first>input').value
+                                    traits.parent_last_name=sibling.querySelector('.name_last>input').value
                                 }else if(labelContent==="Parent's Email"){
-                                    parent_email=sibling.querySelector('input').value
+                                    traits.parent_email=sibling.querySelector('input').value
                                 }else if(labelContent==="Parent Relationship to Student"){
-                                    parent_relationship_to_student=sibling.querySelector('input').value
+                                    traits.parent_relationship_to_student=sibling.querySelector('input').value
                                 }
                             })
-                            let traits = {
-                                user_type : user_type,
-                                is_donor : is_donor,
-                                is_alumni : is_alumni,
-                                first_name : first_name,
-                                last_name : last_name,
-                                birth_day : birth_day,
-                                birth_month : birth_month,
-                                birth_year : birth_year,
-                                age : age,
-                                phone : phone,
-                                email : email,
-                                student_country_origin : student_country_origin,
-                                student_state_origin : student_state_origin,
-                                address_postcode : address_postcode,
-                                address_state : address_state,
-                                start_year : start_year,
-                                enrolement_type : enrolement_type,
-                                interested_in_college : interested_in_college,
-                                career_interests : career_interests,
-                                parent_first_name : parent_first_name,
-                                parent_last_name : parent_last_name,
-                                parent_email : parent_email,
-                                parent_relationship_to_student : parent_relationship_to_student
-                            };
-                            if(student_type!==""){
-                                traits.student_type=student_type;
-                            }
-                            if(employee_type!==""){
-                                traits.employee_type=employee_type;
-                            }
+
+                            console.log(traits)
                             analytics.identify(traits); 
                             let properties = {
                                 form_name : formName,
@@ -235,9 +206,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             }
                             analytics.track('Form Submitted', properties);
                         }   
-                        setTimeout(function(){ 
-                            form.submit()
-                        }, 300);                 
+                        // setTimeout(function(){ 
+                        //     form.submit()
+                        // }, 300);                 
                     },
                     init: function() {
                         let session_search=sessionStorage.getItem('total_searches');
