@@ -198,7 +198,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 }
                             })
 
-                            console.log(traits)
                             analytics.identify(traits); 
                             let properties = {
                                 form_name : formName,
@@ -206,9 +205,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             }
                             analytics.track('Form Submitted', properties);
                         }   
-                        // setTimeout(function(){ 
-                        //     form.submit()
-                        // }, 300);                 
+                        setTimeout(function(){ 
+                            form.submit()
+                        }, 300);                 
                     },
                     init: function() {
                         let session_search=sessionStorage.getItem('total_searches');
@@ -542,8 +541,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         }
                        
                         window.onPlayerReady=function(event) {
-                            console.log(event.target)
-                            console.log("youtube player")
+
                             var lastTime = -1;
                             var lastState=-1;
                             var interval = 1000;
