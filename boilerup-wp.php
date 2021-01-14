@@ -237,7 +237,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                     event.preventDefault();
                                     timer=Math.floor((Date.now()-timerStart)/1000);
 
-                                    if(ext&&ext!=="edu"&&ext!=="edu/"&&ext!=="com"&&ext!=="com/"&&ext!=="org"&&ext!=="org/"&&ext!=="net"&&ext!=="net/"&&ext!=="php"&&ext!=="php"&&ext!=="html"&&ext!=="aspx"){
+                                    if(ext&&(ext==="pdf"||ext==="doc"||ext==="docx"||ext==="xls"||ext==="xlsx"||ext==="ppt"||ext==="pptx"||ext==="txt"||ext==="jpg"||ext==="png"||ext==="gif"||ext==="jpeg"||ext==="zip"||ext==="zip")){
                                         analytics.track('Download Link Clicked', {
                                             click_text: link.innerText,
                                             destination_href:href,
