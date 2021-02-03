@@ -147,13 +147,13 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             };
 
                             // Select the first firstname, lastname, email, phone, state, postcode, and county as user's traits
-                            traits.first_name = document.querySelector('.name_first > input').value || null
-                            traits.last_name = document.querySelector('.name_last > input').value || null
-                            traits.email = document.querySelector('.ginput_container_email > input').value || null
-                            traits.phone = document.querySelector('.ginput_container_phone > input').value || null
-                            traits.state=document.querySelector('.address_state>input').value || null
-                            traits.postcode=document.querySelector('.address_zip>input').value || null
-                            traits.country=document.querySelector('.address_country>select').value || null
+                            traits.first_name = form.querySelector('.name_first > input')?form.querySelector('.name_first > input').value : null
+                            traits.last_name = form.querySelector('.name_last > input')?form.querySelector('.name_last > input').value : null
+                            traits.email = form.querySelector('.ginput_container_email > input')?form.querySelector('.ginput_container_email > input').value : null
+                            traits.phone = form.querySelector('.ginput_container_phone > input').value?form.querySelector('.ginput_container_phone > input').value : null
+                            traits.state=form.querySelector('.address_state>input')?form.querySelector('.address_state>input').value : null
+                            traits.postcode=form.querySelector('.address_zip>input')?form.querySelector('.address_zip>input').value : null
+                            traits.country=form.querySelector('.address_country>select')?form.querySelector('.address_country>select').value : null
 
                             analytics.identify(traits); 
                             let properties = {
