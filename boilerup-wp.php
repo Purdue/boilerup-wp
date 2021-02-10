@@ -256,25 +256,15 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         });
                                     }
                                     //Search Results Page
-                                    if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')){
+                                    if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')&&h1Text!=="Search All Purdue"){
                                         if(link.parentElement.classList.contains("search-post-title")||link.classList.contains("gs-title")){
                                             let pageN=1;
-                                            if(document.querySelector('.gsc-cursor-current-page')){
-                                                pageN=document.querySelector('.gsc-cursor-current-page').innerHTML;
-                                            }else if(document.querySelector('.pagination>.nav-links>.current')){
+                                            if(document.querySelector('.pagination>.nav-links>.current')){
                                                 pageN=document.querySelector('.pagination>.nav-links>.current').innerHTML;
-                                            }
-                                            function getParameterByName(name, url = window.location.href) {
-                                                name = name.replace(/[\[\]]/g, '\\$&');
-                                                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                                                    results = regex.exec(url);
-                                                if (!results) return null;
-                                                if (!results[2]) return '';
-                                                return decodeURIComponent(results[2].replace(/\+/g, ' '));
                                             }
                                             analytics.track('Search Results Page', {
                                                 click_text: link.innerText,
-                                                query: getParameterByName('s')||getParameterByName('q'),
+                                                query: getParameterByName('s'),
                                                 page_number:pageN,
                                                 time_on_page:timer,
                                                 scroll_depth:scrollDepth
@@ -314,7 +304,47 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 }, 300);  
                             })
                         })
-
+                        //Google search result page
+                        if(h1Text==="Search All Purdue"){
+                            let googleSearchLoaded=document.querySelector(".gsc-results-wrapper-visible")
+                            let checkLink = setInterval(function () {
+                                if(googleSearchLoaded){
+                                    let searchLinks = Array.prototype.slice.call(googleSearchLoaded.getElementsByTagName('a.gs-title'), 0);
+                                    if(searchLinks&&searchLinks.length>0){
+                                        searchLinks.foreach((link)=>{
+                                            link.addEventListener('click',function(){
+                                                event.preventDefault();
+                                                timer=Math.floor((Date.now()-timerStart)/1000);
+                                                let pageN=1;
+                                                if(googleSearchLoaded.querySelector('.gsc-cursor-current-page')){
+                                                    pageN=googleSearchLoaded.querySelector('.gsc-cursor-current-page').innerHTML;
+                                                }
+                                                analytics.track('Search Results Page', {
+                                                    click_text: link.innerText,
+                                                    query: getParameterByName('q'),
+                                                    page_number:pageN,
+                                                    time_on_page:timer,
+                                                    scroll_depth:scrollDepth
+                                                });
+                                                setTimeout(function(){ 
+                                                    window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
+                                                }, 300);
+                                            })
+                                        })
+                                    }    
+                                    clearInterval(checkYT);
+                                }
+                            }, 100);
+                            checkLink;
+                        }
+                        function getParameterByName(name, url = window.location.href) {
+                            name = name.replace(/[\[\]]/g, '\\$&');
+                            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                                results = regex.exec(url);
+                            if (!results) return null;
+                            if (!results[2]) return '';
+                            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+                        }
                         //Embeded videos
                         var youtubePlayers=[];
                         var vimeoPlayers=[];
