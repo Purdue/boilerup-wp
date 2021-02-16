@@ -76,7 +76,15 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             ?>
             <!-- Segment.com Analytics -->
             <script>
+            var timestamp;
             !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"];analytics.factory=function(e){return function(){var t=Array.prototype.slice.call(arguments);t.unshift(e);analytics.push(t);return analytics}};for(var e=0;e<analytics.methods.length;e++){var key=analytics.methods[e];analytics[key]=analytics.factory(key)}analytics.load=function(key,e){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n);analytics._loadOptions=e};analytics.SNIPPET_VERSION="4.13.1";
+            var SMW1 = function({ payload, next, integrations }) {
+                timestamp = payload.obj.timestamp;
+                if(payload.obj.properties)
+                    payload.obj.properties.timestamp = timestamp;
+                next(payload);
+            };
+            analytics.addSourceMiddleware(SMW1);
             analytics.load("<?php echo $segment; ?>");
             analytics.page();
             }}();
@@ -117,6 +125,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             <script>
                 var timer;
                 var timerStart;
+                var winheight, docheight, trackLength;
                 var segment_purdue = {
                     formSubmitted: function(event){
   
@@ -125,16 +134,26 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         let form=event.target;
                         let formName=form.querySelector('.gform_heading')?form.querySelector('.gform_heading>.gform_title').innerHTML:document.querySelector('h1').innerHTML;
                         let messages=Array.prototype.slice.call(form.querySelectorAll('.validation_message'),0);
-
+                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+console.log(messages)
                         if(messages&&messages.length>0){
                             let messageText='';
                             messages.forEach((message)=>{
                                 messageText=messageText+message.innerHTML+"\n";
                             })
                             let properties = {
-                                form_name : formName,
+                                total_form_submit_attempts:1,
+                                form_name:formName,
                                 time_on_page:timer,
-                                validation_message:messageText
+                                scroll_depth:scrollDepth,
+                                timestamp:timestamp,
+                                referrer:document.referrer,
+                                validation_message:messageText,
+                                category:"Form submit failed",
+                                action:formName,
+                                label:messageText,
+                                value:1
                             }
                             analytics.track('Form Submit Failed', properties);
                         }else{
@@ -158,7 +177,14 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             analytics.identify(traits); 
                             let properties = {
                                 form_name : formName,
-                                time_on_page:timer
+                                time_on_page:timer,
+                                scroll_depth:scrollDepth,
+                                timestamp:timestamp,
+                                referrer:document.referrer,
+                                total_form_submits:1,
+                                category:"Form submited",
+                                action:formName,
+                                value:1
                             }
                             analytics.track('Form Submitted', properties);
                         }   
@@ -167,8 +193,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         }, 300);                 
                     },
                     init: function() {
-                        let session_search=sessionStorage.getItem('total_searches');
-                        !session_search?sessionStorage.setItem('total_searches', '0'):'';   
+                        
                         //G-forms
                         const gFormWrappers = Array.prototype.slice.call(document.querySelectorAll('.gform_wrapper'), 0);
                         if(gFormWrappers&&gFormWrappers.length>0){
@@ -182,37 +207,46 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         const windowHeight=window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
                         const h1=document.querySelector('h1');
                         const h1Text=h1?h1.innerHTML:'';
-                        
 
                         if(links&&links.length>0){
                             links.forEach((link)=>{
                                 let href=link.href;
                                 let ext_name=href.split('?')[0].split('/').pop()
                                 let ext=ext_name.indexOf(".")!==-1?ext_name.substring(ext_name.lastIndexOf('.')+1):null
-                                let scrollDepth=link.getBoundingClientRect().top>=windowHeight?link.getBoundingClientRect().top-windowHeight:0;
+
                                 link.addEventListener('click',function(){
                                     event.preventDefault();
                                     timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
 
-                                    if(ext&&(ext==="pdf"||ext==="doc"||ext==="docx"||ext==="xls"||ext==="xlsx"||ext==="ppt"||ext==="pptx"||ext==="txt"||ext==="jpg"||ext==="png"||ext==="gif"||ext==="jpeg"||ext==="zip"||ext==="zip")){
-                                        analytics.track('Download Link Clicked', {
-                                            click_text: link.innerText,
-                                            destination_href:href,
-                                            file_type: ext,
-                                            time_on_page:timer,
-                                            scroll_depth:scrollDepth
-                                        });
+                                    if(ext){
+                                        let total_downloads=1;
+                                        let file_type;
+                                        if(ext==="pdf"){
+                                            file_type="pdf";
+                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                        }else if(ext==="jpg"||ext==="png"||ext==="gif"||ext==="jpeg"||ext==="tiff"||ext==="tif"||ext==="svg"||ext==="psd"||ext==="ps"||ext==="ico"||ext==="bmp"||ext==="ai"||ext==="eps"){
+                                            file_type="image";
+                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                        }else if(ext==="doc"||ext==="docx"||ext==="xls"||ext==="xlsx"||ext==="ppt"||ext==="pptx"||ext==="key"||ext==="pages"||ext==="txt"||ext==="rtf"||ext==="odt"||ext==="ods"||ext==="csv"||ext==="tab"||ext==="vsd"){
+                                            file_type="other doc";
+                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                        }else if(ext==="aif"||ext==="mp3"||ext==="mpa"||ext==="wav"||ext==="wma"){
+                                            file_type="audio";
+                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                        }else if(ext==="pkg"||ext==="rar"||ext==="zip"||ext==="dmg"||ext==="exe"||ext==="dat"||ext==="xml"){
+                                            file_type="files";
+                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                        }else if(ext==="avi"||ext==="fiv"||ext==="h264"||ext==="h265"||ext==="m4v"||ext==="mov"||ext==="mp4"||ext==="mpg"||ext==="mpeg"||ext==="wmv"){
+                                            file_type="video";
+                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                        }
                                     }
                                     if(href.substring(0,href.indexOf(":")+1)==="mailto:"){
-                                        analytics.track('Email Link Clicked', {
-                                            destination_href:href,
-                                            time_on_page:timer
-                                        });
+                                        trackOtherLink('Email Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Email links",href)
                                     }else if(href.substring(0,href.indexOf(":")+1)==="tel:"){
-                                        analytics.track('Phone Link Clicked', {
-                                            destination_href:href,
-                                            time_on_page:timer
-                                        });
+                                        trackOtherLink('Phone Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Phone links",href)
                                     }
                                     if(link.host&&link.host!==""&&link.host!==window.location.host){
                                         if(link.host.indexOf("www.facebook.com")!==-1||
@@ -223,17 +257,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             link.host.indexOf("www.youtube.com")!==-1||
                                             link.host.indexOf("www.pinterest.com")!==-1||
                                             link.host.indexOf("www.amazon.com")!==-1){
-                                                analytics.track('social Link Clicked', {
-                                                destination_href:href,
-                                                time_on_page:timer
-                                            });
+                                                trackOtherLink('Social Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Social links",href)
                                         }else{
-                                            analytics.track('External Link Clicked', {
-                                                click_text: link.innerText,
-                                                destination_href:href,
-                                                time_on_page:timer,
-                                                scroll_depth:scrollDepth
-                                            });
+                                            trackLink('External Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Outbound links",href)
                                         }
 
                                     }
@@ -248,33 +274,24 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         link.classList.contains('pu-proofpoint__button')||
                                         link.classList.contains('cta-button')||
                                         link.parentElement.parentElement.parentElement.classList.contains('navbar-end')){
-                                        analytics.track('CTA Link Clicked', {
-                                            click_text: link.innerText,
-                                            destination_href:link.href,
-                                            time_on_page:timer,
-                                            scroll_depth:scrollDepth
-                                        });
+                                            let label=link.innerText+"-"+href;
+                                            trackLink('CTA Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","CTA links",label)
                                     }
                                     //Search Results Page
-                                    if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')){
-                                        if(link.parentElement.classList.contains("search-post-title")||link.classList.contains("gs-title")){
+                                    if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')&&h1Text!=="Search All Purdue"){
+                                        if(link.parentElement.classList.contains("search-post-title")){
                                             let pageN=1;
-                                            if(document.querySelector('.gsc-cursor-current-page')){
-                                                pageN=document.querySelector('.gsc-cursor-current-page').innerHTML;
-                                            }else if(document.querySelector('.pagination>.nav-links>.current')){
+                                            let query=getParameterByName('s')
+                                            let total_search_result_clicks=1;
+                                            if(document.querySelector('.pagination>.nav-links>.current')){
                                                 pageN=document.querySelector('.pagination>.nav-links>.current').innerHTML;
                                             }
-                                            function getParameterByName(name, url = window.location.href) {
-                                                name = name.replace(/[\[\]]/g, '\\$&');
-                                                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                                                    results = regex.exec(url);
-                                                if (!results) return null;
-                                                if (!results[2]) return '';
-                                                return decodeURIComponent(results[2].replace(/\+/g, ' '));
-                                            }
+                                            let label=link.innerText+"-"+pageN;
+                                            trackSearchLink(link.innerText,query,pageN,timer,scrollDepth,timestamp,document.referrer,total_search_result_clicks,"Site search click",query,label,pageN)
+
                                             analytics.track('Search Results Page', {
                                                 click_text: link.innerText,
-                                                query: getParameterByName('s')||getParameterByName('q'),
+                                                query: getParameterByName('s'),
                                                 page_number:pageN,
                                                 time_on_page:timer,
                                                 scroll_depth:scrollDepth
@@ -291,7 +308,11 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         if(h1Text==="Page Not Found"){
                             analytics.track('404 Page Viewed', {
                                 page_href: window.location.href,
-                                referrer: document.referrer
+                                timestamp:timestamp,
+                                referrer: document.referrer,
+                                category: "404 error",
+                                action:window.location.href,
+                                label:document.referrer
                             });
                         }
                         //Search performed
@@ -300,21 +321,59 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             form.addEventListener('submit',function(event){
                                 event.preventDefault();
                                 timer=Math.floor((Date.now()-timerStart)/1000);
+                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                 let phrase=event.target.querySelector('.search-field').value || null;
-                                let searches = sessionStorage.getItem('total_searches');
-                                searches = parseInt(searches)+1;
-                                sessionStorage.setItem('total_searches', searches);
+                                let total_searches=1;
+
                                 analytics.track("Site Search Performed", {
                                     query:phrase,
-                                    total_searches:searches,
-                                    time_on_page:timer
+                                    total_searches:total_searches,
+                                    time_on_page:timer,
+                                    timestamp:timestamp,
+                                    referrer:referrer,
+                                    category:"site search performed",
+                                    action:phrase,
+                                    value:total_searches
                                 })
                                 setTimeout(function(){ 
                                     form.submit()
                                 }, 300);  
                             })
                         })
-
+                        //Google search result page
+                        if(h1Text==="Search All Purdue"){
+                            let googleSearchLoaded=document.querySelector(".gsc-results-wrapper-visible")
+                            let checkLink = setInterval(function () {
+                                if(googleSearchLoaded){
+                                    getmeasurements();
+                                    let searchLinks = Array.prototype.slice.call(googleSearchLoaded.getElementsByTagName('a.gs-title'), 0);
+                                    if(searchLinks&&searchLinks.length>0){
+                                        searchLinks.foreach((link)=>{
+                                            link.addEventListener('click',function(){
+                                                event.preventDefault();
+                                                timer=Math.floor((Date.now()-timerStart)/1000);
+                                                let pageN=1;
+                                                let query=getParameterByName('q')
+                                                let total_search_result_clicks=1;
+                                                
+                                                if(googleSearchLoaded.querySelector('.gsc-cursor-current-page')){
+                                                    pageN=googleSearchLoaded.querySelector('.gsc-cursor-current-page').innerHTML;
+                                                }
+                                                let label=link.innerText+"-"+pageN;
+                                                trackSearchLink(link.innerText,query,pageN,timer,scrollDepth,timestamp,document.referrer,total_search_result_clicks,"Site search click",query,label,pageN)
+                                                
+                                                setTimeout(function(){ 
+                                                    window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
+                                                }, 300);
+                                            })
+                                        })
+                                    }    
+                                    clearInterval(checkYT);
+                                }
+                            }, 100);
+                            checkLink;
+                        }
                         //Embeded videos
                         var youtubePlayers=[];
                         var vimeoPlayers=[];
@@ -322,7 +381,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         window.onload=function(){
 
                             timer=0;
-                            timerStart=Date.now();                      
+                            timerStart=Date.now(); 
+                            getmeasurements();
+
                             const youtube=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-youtube iframe'),0);
                             const vimeo=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-vimeo iframe'),0);
                             const dmotion=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-dailymotion iframe'),0);
@@ -553,54 +614,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
                             }
                         }
-
-                        function trackPlay(player,title,position,length,url){
-                            analytics.track('Video Playback Started', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url
-                            });
-                        }
-                        function trackPause(player,title,position,length,url){
-                            analytics.track('Video Playback Paused', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url
-                            });
-                        }
-                        function trackSeek(player,title,position,length,url){
-                            analytics.track('Video Playback Seek', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url
-                            });
-                        }
-                        function trackComplete(player,title,position,length,url){
-                            analytics.track('Video Playback Completed', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url,
-                                video_progress:'100%'
-                            });
-                        }
-                        function trackProgress(player,title,position,length,url,progress){
-                            analytics.track('Video Playback Progress', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url,
-                                video_progress:progress
-                            });
-                        }
                         //Uploaded videos
                         const videos=Array.prototype.slice.call(document.querySelectorAll('.wp-block-video video'));
                         if(videos&&videos.length>0){
@@ -651,6 +664,138 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 })
                             })
                         }
+                        //Get query parameter
+                        function getParameterByName(name, url = window.location.href) {
+                            name = name.replace(/[\[\]]/g, '\\$&');
+                            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                                results = regex.exec(url);
+                            if (!results) return null;
+                            if (!results[2]) return '';
+                            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+                        }
+                        //Tracking functions
+                        function trackSearchLink(click_text,query,page_number,time_on_page,scroll_depth,timestamp,referrer,total_search_result_clicks,category,action,label,value){
+                            analytics.track("Search Results Page", {
+                                click_text: click_text,
+                                query:query,
+                                page_number:page_number,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                total_search_result_clicks:total_search_result_clicks,
+                                category:category,
+                                action:action,
+                                label:label,
+                                value:value
+                            });
+                        }
+                        function trackLink(message,click_text,destination_href,time_on_page,scroll_depth,timestamp,referrer,category,action,label){
+                            analytics.track(message, {
+                                click_text: click_text,
+                                destination_href:destination_href,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackDownloadLink(click_text,destination_href,file_type,time_on_page,scroll_depth,timestamp,referrer,total_downloads,category,action,label,value){
+                            analytics.track('Download Link Clicked', {
+                                click_text: click_text,
+                                destination_href:destination_href,
+                                file_type: file_type,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                total_downloads:total_downloads,
+                                category:category,
+                                action:action,
+                                label:label,
+                                value:value
+                            });
+                        }
+                        function trackOtherLink(message,destination_href,time_on_page,scroll_depth,timestamp,referrer,category,action,label){
+                            analytics.track(message, {
+                                destination_href:destination_href,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackPlay(player,title,position,length,url){
+                            analytics.track('Video Playback Started', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url
+                            });
+                        }
+                        function trackPause(player,title,position,length,url){
+                            analytics.track('Video Playback Paused', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url
+                            });
+                        }
+                        function trackSeek(player,title,position,length,url){
+                            analytics.track('Video Playback Seek', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url
+                            });
+                        }
+                        function trackComplete(player,title,position,length,url){
+                            analytics.track('Video Playback Completed', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                video_progress:'100%'
+                            });
+                        }
+                        function trackProgress(player,title,position,length,url,progress){
+                            analytics.track('Video Playback Progress', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                video_progress:progress
+                            });
+                        }
+                        //Set parameter
+                        function getDocHeight() {
+                            var D = document;
+                            return Math.max(
+                                D.body.scrollHeight, D.documentElement.scrollHeight,
+                                D.body.offsetHeight, D.documentElement.offsetHeight,
+                                D.body.clientHeight, D.documentElement.clientHeight
+                            )
+                        }
+                        function getmeasurements(){
+                            winheight= window.innerHeight || (document.documentElement || document.body).clientHeight
+                            docheight = getDocHeight()
+                            trackLength = docheight - winheight
+                        }
+
+                        window.addEventListener("resize", function(){
+                            getmeasurements()
+                        }, false)
                     }
                 }
 
