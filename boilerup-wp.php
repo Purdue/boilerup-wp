@@ -863,7 +863,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             videos.forEach((video)=>{
                                 var duration;
                                 var percent=0;
-                                const title=video.nextElementSibling.innerHTML?video.nextElementSibling.innerHTML:'';
+                                const title=video.nextElementSibling?video.nextElementSibling.innerHTML:'';
                                 const url=video.src;
                                 const ext=url.substring(url.lastIndexOf("/")+1).split('.').pop();
                                 let label=title+"-"+url  
