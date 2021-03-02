@@ -386,87 +386,88 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 let href=link.href;
                                 let ext_name=href.split('?')[0].split('/').pop()
                                 let ext=ext_name.indexOf(".")!==-1?ext_name.substring(ext_name.lastIndexOf('.')+1):null
+                                if(!link.classList.contains('ewd-ufaq-post-margin')){
+                                    link.addEventListener('click',function(){
+                                        event.preventDefault();
+                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
 
-                                link.addEventListener('click',function(){
-                                    event.preventDefault();
-                                    timer=Math.floor((Date.now()-timerStart)/1000);
-                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-
-                                    if(ext){
-                                        let total_downloads=1;
-                                        let file_type;
-                                        if(ext==="pdf"){
-                                            file_type="pdf";
-                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
-                                        }else if(ext==="jpg"||ext==="png"||ext==="gif"||ext==="jpeg"||ext==="tiff"||ext==="tif"||ext==="svg"||ext==="psd"||ext==="ps"||ext==="ico"||ext==="bmp"||ext==="ai"||ext==="eps"){
-                                            file_type="image";
-                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
-                                        }else if(ext==="doc"||ext==="docx"||ext==="xls"||ext==="xlsx"||ext==="ppt"||ext==="pptx"||ext==="key"||ext==="pages"||ext==="txt"||ext==="rtf"||ext==="odt"||ext==="ods"||ext==="csv"||ext==="tab"||ext==="vsd"){
-                                            file_type="other doc";
-                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
-                                        }else if(ext==="aif"||ext==="mp3"||ext==="mpa"||ext==="wav"||ext==="wma"){
-                                            file_type="audio";
-                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
-                                        }else if(ext==="pkg"||ext==="rar"||ext==="zip"||ext==="dmg"||ext==="exe"||ext==="dat"||ext==="xml"){
-                                            file_type="files";
-                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
-                                        }else if(ext==="avi"||ext==="fiv"||ext==="h264"||ext==="h265"||ext==="m4v"||ext==="mov"||ext==="mp4"||ext==="mpg"||ext==="mpeg"||ext==="wmv"){
-                                            file_type="video";
-                                            trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
-                                        }
-                                    }
-                                    if(href.substring(0,href.indexOf(":")+1)==="mailto:"){
-                                        trackOtherLink('Email Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Email links",href)
-                                    }else if(href.substring(0,href.indexOf(":")+1)==="tel:"){
-                                        trackOtherLink('Phone Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Phone links",href)
-                                    }
-                                    if(link.host&&link.host!==""&&link.host!==window.location.host){
-                                        if(link.host.indexOf("facebook.com")!==-1||
-                                            link.host.indexOf("twitter.com")!==-1||
-                                            link.host.indexOf("instagram.com")!==-1||
-                                            link.host.indexOf("snapchat.com")!==-1||
-                                            link.host.indexOf("linkedin.com")!==-1||
-                                            link.host.indexOf("youtube.com")!==-1||
-                                            link.host.indexOf("pinterest.com")!==-1||
-                                            link.host.indexOf("amazon.com")!==-1){
-                                                trackOtherLink('Social Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Social links",href)
-                                        }else{
-                                            trackLink('External Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Outbound links",href)
-                                        }
-
-                                    }
-                                    if(link.classList.contains('pu-cta-banner-gray__desc')||
-                                        link.classList.contains('pu-cta-banner-image__button')||
-                                        link.classList.contains('pu-cta-banner-gold__button')||
-                                        link.classList.contains('pu-cta-banner-black__button')||
-                                        link.classList.contains('cta-card__button')||
-                                        link.classList.contains('cta-card-small')||
-                                        link.classList.contains('pu-cta-hero__button')||
-                                        link.classList.contains('pu-feature-story__button')||
-                                        link.classList.contains('pu-proofpoint__button')||
-                                        link.classList.contains('cta-button')||
-                                        link.parentElement.parentElement.parentElement.classList.contains('navbar-end')){
-                                            let label=link.innerText+"-"+href;
-                                            trackLink('CTA Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","CTA links",label)
-                                    }
-                                    //Search Results Page
-                                    if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')&&h1Text!=="Search All Purdue"){
-                                        if(link.parentElement.classList.contains("search-post-title")){
-                                            let pageN=1;
-                                            let query=getParameterByName('s')
-                                            let total_search_result_clicks=1;
-                                            if(document.querySelector('.pagination>.nav-links>.current')){
-                                                pageN=document.querySelector('.pagination>.nav-links>.current').innerHTML;
+                                        if(ext){
+                                            let total_downloads=1;
+                                            let file_type;
+                                            if(ext==="pdf"){
+                                                file_type="pdf";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="jpg"||ext==="png"||ext==="gif"||ext==="jpeg"||ext==="tiff"||ext==="tif"||ext==="svg"||ext==="psd"||ext==="ps"||ext==="ico"||ext==="bmp"||ext==="ai"||ext==="eps"){
+                                                file_type="image";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="doc"||ext==="docx"||ext==="xls"||ext==="xlsx"||ext==="ppt"||ext==="pptx"||ext==="key"||ext==="pages"||ext==="txt"||ext==="rtf"||ext==="odt"||ext==="ods"||ext==="csv"||ext==="tab"||ext==="vsd"){
+                                                file_type="other doc";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="aif"||ext==="mp3"||ext==="mpa"||ext==="wav"||ext==="wma"){
+                                                file_type="audio";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="pkg"||ext==="rar"||ext==="zip"||ext==="dmg"||ext==="exe"||ext==="dat"||ext==="xml"){
+                                                file_type="files";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="avi"||ext==="fiv"||ext==="h264"||ext==="h265"||ext==="m4v"||ext==="mov"||ext==="mp4"||ext==="mpg"||ext==="mpeg"||ext==="wmv"){
+                                                file_type="video";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
                                             }
-                                            let label=link.innerText+"-"+pageN;
-                                            trackSearchLink(link.innerText,query,pageN,timer,scrollDepth,timestamp,document.referrer,total_search_result_clicks,"Site search click",query,label,pageN)
                                         }
-                                    }
-                                    setTimeout(function(){ 
-                                        window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
-                                    }, 300);
-                                })
+                                        if(href.substring(0,href.indexOf(":")+1)==="mailto:"){
+                                            trackOtherLink('Email Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Email links",href)
+                                        }else if(href.substring(0,href.indexOf(":")+1)==="tel:"){
+                                            trackOtherLink('Phone Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Phone links",href)
+                                        }
+                                        if(link.host&&link.host!==""&&link.host!==window.location.host){
+                                            if(link.host.indexOf("facebook.com")!==-1||
+                                                link.host.indexOf("twitter.com")!==-1||
+                                                link.host.indexOf("instagram.com")!==-1||
+                                                link.host.indexOf("snapchat.com")!==-1||
+                                                link.host.indexOf("linkedin.com")!==-1||
+                                                link.host.indexOf("youtube.com")!==-1||
+                                                link.host.indexOf("pinterest.com")!==-1||
+                                                link.host.indexOf("amazon.com")!==-1){
+                                                    trackOtherLink('Social Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Social links",href)
+                                            }else{
+                                                trackLink('External Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Outbound links",href)
+                                            }
+
+                                        }
+                                        if(link.classList.contains('pu-cta-banner-gray__desc')||
+                                            link.classList.contains('pu-cta-banner-image__button')||
+                                            link.classList.contains('pu-cta-banner-gold__button')||
+                                            link.classList.contains('pu-cta-banner-black__button')||
+                                            link.classList.contains('cta-card__button')||
+                                            link.classList.contains('cta-card-small')||
+                                            link.classList.contains('pu-cta-hero__button')||
+                                            link.classList.contains('pu-feature-story__button')||
+                                            link.classList.contains('pu-proofpoint__button')||
+                                            link.classList.contains('cta-button')||
+                                            link.parentElement.parentElement.parentElement.classList.contains('navbar-end')){
+                                                let label=link.innerText+"-"+href;
+                                                trackLink('CTA Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","CTA links",label)
+                                        }
+                                        //Search Results Page
+                                        if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')&&h1Text!=="Search All Purdue"){
+                                            if(link.parentElement.classList.contains("search-post-title")){
+                                                let pageN=1;
+                                                let query=getParameterByName('s')
+                                                let total_search_result_clicks=1;
+                                                if(document.querySelector('.pagination>.nav-links>.current')){
+                                                    pageN=document.querySelector('.pagination>.nav-links>.current').innerHTML;
+                                                }
+                                                let label=link.innerText+"-"+pageN;
+                                                trackSearchLink(link.innerText,query,pageN,timer,scrollDepth,timestamp,document.referrer,total_search_result_clicks,"Site search click",query,label,pageN)
+                                            }
+                                        }
+                                        setTimeout(function(){ 
+                                            window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
+                                        }, 300);
+                                    })
+                                }
                             })
                         }
                         //404 page 
