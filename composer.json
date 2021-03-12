@@ -3,13 +3,10 @@
     "description": "Wordpress Must-Use Plugin that provides Purdue brand assets",
     "authors": [
         {
-            "name": "Purdue Marketing and Media",
+            "name": "Purdue Marketing and Communicatons",
             "email": "digitalmarketing@groups.purdue.edu"
         }
     ],
     "license": "GPL-3.0+",
-    "type": "wordpress-muplugin",
-    "require": {
-        "php": ">=7.0"
-    }
+    "type": "wordpress-muplugin"
 }

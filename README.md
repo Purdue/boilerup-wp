@@ -21,11 +21,14 @@ Provide a consistent method of managing the Purdue brand across multiple WordPre
 }
 
 "require": {
-    "purdue/boilerup-wp": "1.3.0"
+    "purdue/boilerup-wp": "*"
 }
 ```
 
 ## Change Log
+#### [1.5.1] - 2020-03-12
+- UPDATE: Disable Segment Customizations
+
 #### [1.3.0] - 2020-04-21
 - ADD: Source Serif Pro font replaces Farnham Text
 

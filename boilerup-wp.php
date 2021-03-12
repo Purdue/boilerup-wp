@@ -34,9 +34,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
             // add_action( 'wp_footer', array( __CLASS__, 'add_segment_form_identify' ), 5 );
-            add_action( 'wp_footer', array( __CLASS__, 'add_segment_body_code' ));
+            // add_action( 'wp_footer', array( __CLASS__, 'add_segment_body_code' ));
             add_action( 'wp_head', array( __CLASS__, 'add_segment_code' ), 5 );
-            add_action( 'wp_head', array( __CLASS__, 'add_header_icons' ) );
+            // add_action( 'wp_head', array( __CLASS__, 'add_header_icons' ) );
             add_action( 'login_enqueue_scripts', array( __CLASS__, 'my_login_logo') );
             add_filter( 'login_headerurl', array( __CLASS__, 'my_login_logo_url') );
             add_filter( 'login_headertitle', array( __CLASS__, 'my_login_logo_url_title') );
