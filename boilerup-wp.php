@@ -76,7 +76,15 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             ?>
             <!-- Segment.com Analytics -->
             <script>
+            var timestamp;
             !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"];analytics.factory=function(e){return function(){var t=Array.prototype.slice.call(arguments);t.unshift(e);analytics.push(t);return analytics}};for(var e=0;e<analytics.methods.length;e++){var key=analytics.methods[e];analytics[key]=analytics.factory(key)}analytics.load=function(key,e){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n);analytics._loadOptions=e};analytics.SNIPPET_VERSION="4.13.1";
+            var SMW1 = function({ payload, next, integrations }) {
+                timestamp = payload.obj.timestamp;
+                if(payload.obj.properties)
+                    payload.obj.properties.timestamp = timestamp;
+                next(payload);
+            };
+            analytics.addSourceMiddleware(SMW1);
             analytics.load("<?php echo $segment; ?>");
             analytics.page();
             }}();
@@ -117,181 +125,360 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             <script>
                 var timer;
                 var timerStart;
+                var winheight, docheight, trackLength;
                 var segment_purdue = {
                     formSubmitted: function(event){
   
                         event.preventDefault();
-                        timer=Math.floor((Date.now()-timerStart)/1000);
                         let form=event.target;
-                        let formName=form.querySelector('.gform_heading')?form.querySelector('.gform_heading>.gform_title').innerHTML:document.querySelector('h1').innerHTML;
-                        let messages=Array.prototype.slice.call(form.querySelectorAll('.validation_message'),0);
+                        let formId=form.id.substring(form.id.lastIndexOf("_")+1)
+                        let item_time="gform_time_"+formId
+                        let item_referrer="gform_referrer_"+formId  
+                        let item_depth="gform_depth_"+formId  
+                        let item_fname="gform_fname_"+formId  
+                        let item_lname="gform_lname_"+formId  
+                        let item_email="gform_email_"+formId  
+                        let item_phone="gform_phone_"+formId  
+                        let item_state="gform_state_"+formId  
+                        let item_zip="gform_zip_"+formId  
+                        let item_country="gform_country_"+formId  
+                        let item_fail="gform_fail_"+formId  
+                        let item_submit="gform_submit_"+formId  
 
-                        if(messages&&messages.length>0){
-                            let messageText='';
-                            messages.forEach((message)=>{
-                                messageText=messageText+message.innerHTML+"\n";
-                            })
-                            let properties = {
-                                form_name : formName,
-                                time_on_page:timer,
-                                validation_message:messageText
-                            }
-                            analytics.track('Form Submit Failed', properties);
-                        }else{
+                        timer=Math.floor((Date.now()-timerStart)/1000);
+                        sessionStorage.setItem(item_time, timer)  
+                        sessionStorage.setItem(item_referrer, document.referrer)
 
-                            let traits = {
-                                first_name : '',
-                                last_name : '',
-                                phone : '',
-                                email : '',
-                            };
+                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                        sessionStorage.setItem(item_depth, scrollDepth)
+  
+                        // Select the first firstname, lastname, email, phone, state, postcode, and county as user's traits
+                        let fname = form.querySelector('.name_first > input')?form.querySelector('.name_first > input').value : null
+                        let lname = form.querySelector('.name_last > input')?form.querySelector('.name_last > input').value : null
+                        let email = form.querySelector('.ginput_container_email > input')?form.querySelector('.ginput_container_email > input').value : null
+                        let phone = form.querySelector('.ginput_container_phone > input')?form.querySelector('.ginput_container_phone > input').value : null
+                        let state=form.querySelector('.address_state>input')?form.querySelector('.address_state>input').value : null
+                        let postcode=form.querySelector('.address_zip>input')?form.querySelector('.address_zip>input').value : null
+                        let country=form.querySelector('.address_country>select')?form.querySelector('.address_country>select').value : null
 
-                            // Select the first firstname, lastname, email, phone, state, postcode, and county as user's traits
-                            traits.first_name = form.querySelector('.name_first > input')?form.querySelector('.name_first > input').value : null
-                            traits.last_name = form.querySelector('.name_last > input')?form.querySelector('.name_last > input').value : null
-                            traits.email = form.querySelector('.ginput_container_email > input')?form.querySelector('.ginput_container_email > input').value : null
-                            traits.phone = form.querySelector('.ginput_container_phone > input').value?form.querySelector('.ginput_container_phone > input').value : null
-                            traits.state=form.querySelector('.address_state>input')?form.querySelector('.address_state>input').value : null
-                            traits.postcode=form.querySelector('.address_zip>input')?form.querySelector('.address_zip>input').value : null
-                            traits.country=form.querySelector('.address_country>select')?form.querySelector('.address_country>select').value : null
+                        sessionStorage.setItem(item_fname, fname)
+                        sessionStorage.setItem(item_lname, lname)
+                        sessionStorage.setItem(item_email, email)
+                        sessionStorage.setItem(item_phone, phone)
+                        sessionStorage.setItem(item_state, state)
+                        sessionStorage.setItem(item_zip, postcode)
+                        sessionStorage.setItem(item_country, country)
+                        sessionStorage.setItem(item_fail, "submitted")
+                        sessionStorage.setItem(item_submit, "submitted")
 
-                            analytics.identify(traits); 
-                            let properties = {
-                                form_name : formName,
-                                time_on_page:timer
-                            }
-                            analytics.track('Form Submitted', properties);
-                        }   
                         setTimeout(function(){ 
                             form.submit()
                         }, 300);                 
                     },
                     init: function() {
-                        let session_search=sessionStorage.getItem('total_searches');
-                        !session_search?sessionStorage.setItem('total_searches', '0'):'';   
+                       
                         //G-forms
                         const gFormWrappers = Array.prototype.slice.call(document.querySelectorAll('.gform_wrapper'), 0);
                         if(gFormWrappers&&gFormWrappers.length>0){
-                            gFormWrappers.forEach((wrapper)=>{
-                                let form=wrapper.querySelector('form')
-                                form.addEventListener("submit",this.formSubmitted);
+                            gFormWrappers.forEach((wrapper,index)=>{
+                            let form=wrapper.querySelector('form')
+                            let formName=form.querySelector('.gform_heading')?form.querySelector('.gform_heading>.gform_title').innerHTML:document.querySelector('h1').innerHTML;
+                            let formId=form.id.substring(form.id.lastIndexOf("_")+1)
+
+                            var item_formName="gform_formName_"+formId
+                            var session_gform_formName=sessionStorage.getItem(item_formName);
+                                !session_gform_formName?sessionStorage.setItem(item_formName, formName):'';  
+
+                            var item_userType="gform_userType_"+formId
+                            var session_gform_userType=sessionStorage.getItem(item_userType);
+                                !session_gform_userType?sessionStorage.setItem(item_userType, ""):'';  
+                           
+                            var item_time="gform_time_"+formId  
+                            var session_item_time=sessionStorage.getItem(item_time);  
+                                !session_item_time?sessionStorage.setItem(item_time, ""):'';  
+                                
+                            var item_referrer="gform_referrer_"+formId  
+                            var session_item_referrer=sessionStorage.getItem(item_referrer);  
+                                !session_item_referrer?sessionStorage.setItem(item_referrer, ""):''; 
+
+                            var item_depth="gform_depth_"+formId  
+                            var session_item_depth=sessionStorage.getItem(item_depth);  
+                                !session_item_depth?sessionStorage.setItem(item_depth, ""):'';  
+
+                            var item_fname="gform_fname_"+formId  
+                            var session_item_fname=sessionStorage.getItem(item_fname);  
+                                !session_item_fname?sessionStorage.setItem(item_fname, ""):'';  
+
+                            var item_lname="gform_lname_"+formId  
+                            var session_item_lname=sessionStorage.getItem(item_lname);  
+                                !session_item_lname?sessionStorage.setItem(item_lname, ""):''; 
+
+                            var item_email="gform_email_"+formId  
+                            var session_item_email=sessionStorage.getItem(item_email);  
+                                !session_item_email?sessionStorage.setItem(item_email, ""):'';  
+
+                            var item_phone="gform_phone_"+formId  
+                            var session_item_phone=sessionStorage.getItem(item_phone);  
+                                !session_item_phone?sessionStorage.setItem(item_phone, ""):''; 
+                                
+                            var item_state="gform_state_"+formId  
+                            var session_item_state=sessionStorage.getItem(item_state);  
+                                !session_item_state?sessionStorage.setItem(item_state, ""):'';      
+
+                            var item_zip="gform_zip_"+formId  
+                            var session_item_zip=sessionStorage.getItem(item_zip);  
+                                !session_item_zip?sessionStorage.setItem(item_zip, ""):'';   
+
+                            var item_country="gform_country_"+formId  
+                            var session_item_country=sessionStorage.getItem(item_country);  
+                                !session_item_country?sessionStorage.setItem(item_country, ""):'';  
+
+                            var item_fail="gform_fail_"+formId  
+                            var session_item_fail=sessionStorage.getItem(item_fail);  
+                                !session_item_fail?sessionStorage.setItem(item_fail, ""):'';  
+
+                            var item_submit="gform_submit_"+formId  
+                            var session_item_submit=sessionStorage.getItem(item_submit);  
+                                !session_item_submit?sessionStorage.setItem(item_submit, ""):'';  
+
+                                //form submit
+                                form.addEventListener("submit", this.formSubmitted)
+
+                                //Form submit failed
+                                jQuery(document).on('gform_post_render', function(e, form_id) {   
+                                    console.log('submit')
+                                    
+                                    if(form_id === parseInt(formId)) {
+                                        let messages=Array.prototype.slice.call(form.querySelectorAll('.validation_message'),0);
+                    
+                                        if(messages&&messages.length>0&&session_item_fail!==""){
+                                            let messageText='';
+                                            messages.forEach((message)=>{
+                                                messageText=messageText+message.innerHTML+"\n";
+                                            })
+                                            let properties = {
+                                                total_form_submit_attempts:1,
+                                                form_name:formName,
+                                                time_on_page:session_item_time,
+                                                scroll_depth:session_item_depth,
+                                                timestamp:timestamp,
+                                                referrer:session_item_referrer,
+                                                validation_message:messageText,
+                                                category:"Form submit failed",
+                                                action:formName,
+                                                label:messageText,
+                                                value:1
+                                            }
+                                            analytics.track('Form Submit Failed', properties);
+                                            sessionStorage.setItem(item_time, "")  
+                                            sessionStorage.setItem(item_referrer, "")
+                                            sessionStorage.setItem(item_depth, "")  
+                                            sessionStorage.setItem(item_fname, "")
+                                            sessionStorage.setItem(item_lname, "")
+                                            sessionStorage.setItem(item_email, "")
+                                            sessionStorage.setItem(item_phone, "")
+                                            sessionStorage.setItem(item_state, "")
+                                            sessionStorage.setItem(item_zip, "")
+                                            sessionStorage.setItem(item_country, "")
+                                            sessionStorage.setItem(item_fail, "")
+                                            sessionStorage.setItem(item_submit, "")
+                                        }                                        
+                                    }
+                                })
+
                             })
                         }
+                        //form submit succeeded
+                        var confirm_messages=Array.prototype.slice.call(document.querySelectorAll('.gform_confirmation_message'),0);
+                        if(confirm_messages&&confirm_messages.length>0){
+                            console.log("confirm_message")
+                            confirm_messages.forEach((message)=>{
+                                let formId=message.id.substring(message.id.lastIndexOf("_")+1)
+
+                                let item_formName="gform_formName_"+formId
+                                let session_gform_formName=sessionStorage.getItem(item_formName);
+
+                                let item_userType="gform_userType_"+formId
+                                let session_gform_userType=sessionStorage.getItem(item_userType);
+
+                                let item_time="gform_time_"+formId  
+                                let session_item_time=sessionStorage.getItem(item_time);  
+                                    
+                                var item_referrer="gform_referrer_"+formId  
+                                var session_item_referrer=sessionStorage.getItem(item_referrer);  
+
+                                var item_depth="gform_depth_"+formId  
+                                var session_item_depth=sessionStorage.getItem(item_depth);  
+
+                                var item_fname="gform_fname_"+formId  
+                                var session_item_fname=sessionStorage.getItem(item_fname);  
+
+                                var item_lname="gform_lname_"+formId  
+                                var session_item_lname=sessionStorage.getItem(item_lname);  
+
+                                var item_email="gform_email_"+formId  
+                                var session_item_email=sessionStorage.getItem(item_email);  
+
+                                var item_phone="gform_phone_"+formId  
+                                var session_item_phone=sessionStorage.getItem(item_phone);  
+                                    
+                                var item_state="gform_state_"+formId  
+                                var session_item_state=sessionStorage.getItem(item_state);  
+
+                                var item_zip="gform_zip_"+formId  
+                                var session_item_zip=sessionStorage.getItem(item_zip);  
+
+                                var item_country="gform_country_"+formId  
+                                var session_item_country=sessionStorage.getItem(item_country); 
+
+                                var item_submit="gform_submit_"+formId  
+                                var session_item_submit=sessionStorage.getItem(item_submit);  
+
+                                if(session_item_submit&&session_item_submit!==""){
+                                    let traits = {
+                                        first_name : session_item_fname,
+                                        last_name : session_item_lname,
+                                        email : session_item_email,
+                                        phone : session_item_phone,
+                                        state: session_item_state,
+                                        postCode: session_item_zip,
+                                        country: session_item_country
+                                    }; 
+                                    analytics.identify(traits); 
+                                    let properties = {
+                                        form_name:session_gform_formName,
+                                        time_on_page:session_item_time,
+                                        scroll_depth:session_item_depth,
+                                        timestamp:timestamp,
+                                        referrer:session_item_referrer,
+                                        user_type:session_gform_userType,
+                                        total_form_submits:1,
+                                        category:"Form submitted",
+                                        action:session_gform_formName,
+                                        label:session_gform_userType,
+                                        value:1
+                                    }
+                                    analytics.track('Form Submitted', properties)
+                                    sessionStorage.setItem(item_time, "")  
+                                    sessionStorage.setItem(item_referrer, "")
+                                    sessionStorage.setItem(item_depth, "")  
+                                    sessionStorage.setItem(item_fname, "")
+                                    sessionStorage.setItem(item_lname, "")
+                                    sessionStorage.setItem(item_email, "")
+                                    sessionStorage.setItem(item_phone, "")
+                                    sessionStorage.setItem(item_state, "")
+                                    sessionStorage.setItem(item_zip, "")
+                                    sessionStorage.setItem(item_country, "")
+                                    sessionStorage.setItem(item_submit, "")
+                                } 
+                            })
+                        }
+
                         // this code will result in a Segment track event firing when the link is clicked
                         const links = Array.prototype.slice.call(document.getElementsByTagName('a'), 0);
                         const windowHeight=window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
                         const h1=document.querySelector('h1');
                         const h1Text=h1?h1.innerHTML:'';
-                        
 
                         if(links&&links.length>0){
                             links.forEach((link)=>{
                                 let href=link.href;
                                 let ext_name=href.split('?')[0].split('/').pop()
                                 let ext=ext_name.indexOf(".")!==-1?ext_name.substring(ext_name.lastIndexOf('.')+1):null
-                                let scrollDepth=link.getBoundingClientRect().top>=windowHeight?link.getBoundingClientRect().top-windowHeight:0;
-                                link.addEventListener('click',function(){
-                                    event.preventDefault();
-                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                if(!link.classList.contains('ewd-ufaq-post-margin')){
+                                    link.addEventListener('click',function(){
+                                        event.preventDefault();
+                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
 
-                                    if(ext&&(ext==="pdf"||ext==="doc"||ext==="docx"||ext==="xls"||ext==="xlsx"||ext==="ppt"||ext==="pptx"||ext==="txt"||ext==="jpg"||ext==="png"||ext==="gif"||ext==="jpeg"||ext==="zip"||ext==="zip")){
-                                        analytics.track('Download Link Clicked', {
-                                            click_text: link.innerText,
-                                            destination_href:href,
-                                            file_type: ext,
-                                            time_on_page:timer,
-                                            scroll_depth:scrollDepth
-                                        });
-                                    }
-                                    if(href.substring(0,href.indexOf(":")+1)==="mailto:"){
-                                        analytics.track('Email Link Clicked', {
-                                            destination_href:href,
-                                            time_on_page:timer
-                                        });
-                                    }else if(href.substring(0,href.indexOf(":")+1)==="tel:"){
-                                        analytics.track('Phone Link Clicked', {
-                                            destination_href:href,
-                                            time_on_page:timer
-                                        });
-                                    }
-                                    if(link.host&&link.host!==""&&link.host!==window.location.host){
-                                        if(link.host.indexOf("www.facebook.com")!==-1||
-                                            link.host.indexOf("www.twitter.com")!==-1||
-                                            link.host.indexOf("www.instagram.com")!==-1||
-                                            link.host.indexOf("www.snapchat.com")!==-1||
-                                            link.host.indexOf("www.linkedin.com")!==-1||
-                                            link.host.indexOf("www.youtube.com")!==-1||
-                                            link.host.indexOf("www.pinterest.com")!==-1||
-                                            link.host.indexOf("www.amazon.com")!==-1){
-                                                analytics.track('social Link Clicked', {
-                                                destination_href:href,
-                                                time_on_page:timer
-                                            });
-                                        }else{
-                                            analytics.track('External Link Clicked', {
-                                                click_text: link.innerText,
-                                                destination_href:href,
-                                                time_on_page:timer,
-                                                scroll_depth:scrollDepth
-                                            });
+                                        if(ext){
+                                            let total_downloads=1;
+                                            let file_type;
+                                            if(ext==="pdf"){
+                                                file_type="pdf";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="jpg"||ext==="png"||ext==="gif"||ext==="jpeg"||ext==="tiff"||ext==="tif"||ext==="svg"||ext==="psd"||ext==="ps"||ext==="ico"||ext==="bmp"||ext==="ai"||ext==="eps"){
+                                                file_type="image";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="doc"||ext==="docx"||ext==="xls"||ext==="xlsx"||ext==="ppt"||ext==="pptx"||ext==="key"||ext==="pages"||ext==="txt"||ext==="rtf"||ext==="odt"||ext==="ods"||ext==="csv"||ext==="tab"||ext==="vsd"){
+                                                file_type="other doc";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="aif"||ext==="mp3"||ext==="mpa"||ext==="wav"||ext==="wma"){
+                                                file_type="audio";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="pkg"||ext==="rar"||ext==="zip"||ext==="dmg"||ext==="exe"||ext==="dat"||ext==="xml"){
+                                                file_type="files";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }else if(ext==="avi"||ext==="fiv"||ext==="h264"||ext==="h265"||ext==="m4v"||ext==="mov"||ext==="mp4"||ext==="mpg"||ext==="mpeg"||ext==="wmv"){
+                                                file_type="video";
+                                                trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
+                                            }
                                         }
+                                        if(href.substring(0,href.indexOf(":")+1)==="mailto:"){
+                                            trackOtherLink('Email Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Email links",href)
+                                        }else if(href.substring(0,href.indexOf(":")+1)==="tel:"){
+                                            trackOtherLink('Phone Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Phone links",href)
+                                        }
+                                        if(link.host&&link.host!==""&&link.host!==window.location.host){
+                                            if(link.host.indexOf("facebook.com")!==-1||
+                                                link.host.indexOf("twitter.com")!==-1||
+                                                link.host.indexOf("instagram.com")!==-1||
+                                                link.host.indexOf("snapchat.com")!==-1||
+                                                link.host.indexOf("linkedin.com")!==-1||
+                                                link.host.indexOf("youtube.com")!==-1||
+                                                link.host.indexOf("pinterest.com")!==-1||
+                                                link.host.indexOf("amazon.com")!==-1){
+                                                    trackOtherLink('Social Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Social links",href)
+                                            }else{
+                                                trackLink('External Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Outbound links",href)
+                                            }
 
-                                    }
-                                    if(link.classList.contains('pu-cta-banner-gray__desc')||
-                                        link.classList.contains('pu-cta-banner-image__button')||
-                                        link.classList.contains('pu-cta-banner-gold__button')||
-                                        link.classList.contains('pu-cta-banner-black__button')||
-                                        link.classList.contains('cta-card__button')||
-                                        link.classList.contains('cta-card-small')||
-                                        link.classList.contains('pu-cta-hero__button')||
-                                        link.classList.contains('pu-feature-story__button')||
-                                        link.classList.contains('pu-proofpoint__button')||
-                                        link.classList.contains('cta-button')||
-                                        link.parentElement.parentElement.parentElement.classList.contains('navbar-end')){
-                                        analytics.track('CTA Link Clicked', {
-                                            click_text: link.innerText,
-                                            destination_href:link.href,
-                                            time_on_page:timer,
-                                            scroll_depth:scrollDepth
-                                        });
-                                    }
-                                    //Search Results Page
-                                    if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')){
-                                        if(link.parentElement.classList.contains("search-post-title")||link.classList.contains("gs-title")){
-                                            let pageN=1;
-                                            if(document.querySelector('.gsc-cursor-current-page')){
-                                                pageN=document.querySelector('.gsc-cursor-current-page').innerHTML;
-                                            }else if(document.querySelector('.pagination>.nav-links>.current')){
-                                                pageN=document.querySelector('.pagination>.nav-links>.current').innerHTML;
-                                            }
-                                            function getParameterByName(name, url = window.location.href) {
-                                                name = name.replace(/[\[\]]/g, '\\$&');
-                                                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                                                    results = regex.exec(url);
-                                                if (!results) return null;
-                                                if (!results[2]) return '';
-                                                return decodeURIComponent(results[2].replace(/\+/g, ' '));
-                                            }
-                                            analytics.track('Search Results Page', {
-                                                click_text: link.innerText,
-                                                query: getParameterByName('s')||getParameterByName('q'),
-                                                page_number:pageN,
-                                                time_on_page:timer,
-                                                scroll_depth:scrollDepth
-                                            });
                                         }
-                                    }
-                                    setTimeout(function(){ 
-                                        window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
-                                    }, 300);
-                                })
+                                        if(link.classList.contains('pu-cta-banner-gray__desc')||
+                                            link.classList.contains('pu-cta-banner-image__button')||
+                                            link.classList.contains('pu-cta-banner-gold__button')||
+                                            link.classList.contains('pu-cta-banner-black__button')||
+                                            link.classList.contains('cta-card__button')||
+                                            link.classList.contains('cta-card-small')||
+                                            link.classList.contains('pu-cta-hero__button')||
+                                            link.classList.contains('pu-feature-story__button')||
+                                            link.classList.contains('pu-proofpoint__button')||
+                                            link.classList.contains('cta-button')||
+                                            link.parentElement.parentElement.parentElement.classList.contains('navbar-end')){
+                                                let label=link.innerText+"-"+href;
+                                                trackLink('CTA Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","CTA links",label)
+                                        }
+                                        //Search Results Page
+                                        if(h1Text.substring(0,h1Text.indexOf(' '))==="Search"&&h1.nextElementSibling.classList.contains('search-box')&&h1Text!=="Search All Purdue"){
+                                            if(link.parentElement.classList.contains("search-post-title")){
+                                                let pageN=1;
+                                                let query=getParameterByName('s')
+                                                let total_search_result_clicks=1;
+                                                if(document.querySelector('.pagination>.nav-links>.current')){
+                                                    pageN=document.querySelector('.pagination>.nav-links>.current').innerHTML;
+                                                }
+                                                let label=link.innerText+"-"+pageN;
+                                                trackSearchLink(link.innerText,query,pageN,timer,scrollDepth,timestamp,document.referrer,total_search_result_clicks,"Site search click",query,label,pageN)
+                                            }
+                                        }
+                                        setTimeout(function(){ 
+                                            window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
+                                        }, 300);
+                                    })
+                                }
                             })
                         }
                         //404 page 
                         if(h1Text==="Page Not Found"){
                             analytics.track('404 Page Viewed', {
                                 page_href: window.location.href,
-                                referrer: document.referrer
+                                timestamp:timestamp,
+                                referrer: document.referrer,
+                                category: "404 error",
+                                action:window.location.href,
+                                label:document.referrer
                             });
                         }
                         //Search performed
@@ -300,21 +487,79 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             form.addEventListener('submit',function(event){
                                 event.preventDefault();
                                 timer=Math.floor((Date.now()-timerStart)/1000);
+                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                 let phrase=event.target.querySelector('.search-field').value || null;
-                                let searches = sessionStorage.getItem('total_searches');
-                                searches = parseInt(searches)+1;
-                                sessionStorage.setItem('total_searches', searches);
+                                let total_searches=1;
+
                                 analytics.track("Site Search Performed", {
                                     query:phrase,
-                                    total_searches:searches,
-                                    time_on_page:timer
+                                    total_searches:total_searches,
+                                    time_on_page:timer,
+                                    timestamp:timestamp,
+                                    referrer:document.referrer,
+                                    category:"site search performed",
+                                    action:phrase,
+                                    value:total_searches
                                 })
                                 setTimeout(function(){ 
                                     form.submit()
                                 }, 300);  
                             })
                         })
+                        //Google search result page
+                        if(h1Text==="Search All Purdue"){
+                            let checkLink = setInterval(function () {
+                                let googleSearchLoaded=document.querySelector(".gsc-results-wrapper-visible")
+                                if(googleSearchLoaded){
+                                    getmeasurements();
+                                    var clickLink=function(){
+                                        let searchLinks = Array.prototype.slice.call(googleSearchLoaded.querySelectorAll('a.gs-title'), 0);
+                                        if(searchLinks&&searchLinks.length>0){
+                                            searchLinks.forEach((link)=>{
+                                                link.addEventListener('click',function(){
+                                                    event.preventDefault();
+                                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                    let pageN=1;
+                                                    let query=getParameterByName('q')
+                                                    let total_search_result_clicks=1;
+                                                    if(googleSearchLoaded.querySelector('.gsc-cursor-current-page')){
+                                                        pageN=googleSearchLoaded.querySelector('.gsc-cursor-current-page').innerHTML;
+                                                    }
+                                                    let label=link.innerText+"-"+pageN;
+                                                    trackSearchLink(link.innerText,query,pageN,timer,scrollDepth,timestamp,document.referrer,total_search_result_clicks,"Site search click",query,label,pageN)
+                                                    console.log(link)
+                                                    setTimeout(function(){ 
+                                                        window.open(link.href, link.target&&link.target==="_blank"?"_blank":"_self")
+                                                    }, 300);
+                                                })
+                                            })
+                                        }
+                                    }
+                                    clickLink()
+                                    let pageNos=Array.prototype.slice.call(googleSearchLoaded.querySelectorAll('.gsc-cursor-page'), 0);
+                                    if(pageNos&&pageNos.length>0){
+                                        pageNos.forEach((pageNo)=>{
+                                            pageNo.addEventListener('click',function(){
+                                                let checkloading = setInterval(function () {
+                                                    let loading=document.querySelector('.gsc-loading-fade')
+                                                    if(!loading){
+                                                        clickLink()                                  
+                                                        clearInterval(checkloading);
+                                                    }
+                                                }, 100);
+                                                checkloading;
+                                            })
+                                        })
+                                    } 
+                                    clearInterval(checkLink);
+                                }
+                            }, 100);
+                            checkLink;
 
+                        }
                         //Embeded videos
                         var youtubePlayers=[];
                         var vimeoPlayers=[];
@@ -322,7 +567,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         window.onload=function(){
 
                             timer=0;
-                            timerStart=Date.now();                      
+                            timerStart=Date.now(); 
+                            getmeasurements();
+
                             const youtube=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-youtube iframe'),0);
                             const vimeo=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-vimeo iframe'),0);
                             const dmotion=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-dailymotion iframe'),0);
@@ -383,26 +630,42 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                         player.getVideoTitle(),
                                                         player.getDuration(),
                                                     ]);
+                                                    let label=title+"-"+url
                                                     player.on('play', function(event) {
-                                                        trackPlay("Vimeo",title,Math.round(event.seconds),duration,url);
+                                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                        let total_videos_started=1
+                                                                   
+                                                        trackPlay("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);
                                                     });
                                                     player.on('pause', function(event) {
+                                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                                         if(Math.round(event.seconds)!==duration){
-                                                            trackPause("Vimeo",title,Math.round(event.seconds),duration,url);
+                                                            trackPause("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
                                                         }
                                                        
                                                     });
                                                     player.on('ended', function(event) {
-                                                        trackComplete("Vimeo",title,Math.round(event.seconds),duration,url);
+                                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                        let total_videos_completed=1
+                                                        trackComplete("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
                                                     });
                                                   
                                                     var lastTime=0;
                                                     var currentTime=0;
                                                     var seekStart = null;
                                                     player.on('seeking', function(event) {
+                                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                                         if(seekStart === null){
                                                             seekStart=lastTime
-                                                            trackSeek("Vimeo",title,Math.round(event.seconds),duration,url);   
+                                                            trackSeek("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);   
                                                         }
 
                                                     });
@@ -410,13 +673,17 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                         seekStart = null;
                                                     });
                                                     player.on("timeupdate", function(event){
-                                    
+                                                        
+                                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                                         let percent_new=Math.round(event.seconds/duration*100);
                                                         if(percent_new!==percent){
                                                             percent=percent_new;
                                                             if(percent===25||percent===50||percent===75||percent===90){
                                                                 percentage=percent+'%'
-                                                                trackProgress("Vimeo",title,Math.round(event.seconds),duration,url,percentage)
+                                                                let total_videos_progress=1
+                                                                trackProgress("Vimeo",title,Math.round(event.seconds),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                                             }
                                                         }
                                                         lastTime = currentTime;
@@ -462,28 +729,47 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             var player =DM.player(iframe,{
                                                 video: videoID
                                             });
+                                            let label=title+"-"+url  
 
                                             player.addEventListener('play', function(event){
-                                                trackPlay("Daily Motion",title,Math.round(event.target.currentTime),duration,url);
-                                                
+                                                timer=Math.floor((Date.now()-timerStart)/1000);
+                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                let total_videos_started=1          
+                                                 
+                                                trackPlay("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);                                                
                                             })
                                             player.addEventListener('pause', function(event){
-                                                trackPause("Daily Motion",title,Math.round(event.target.currentTime),duration,url);
+                                                timer=Math.floor((Date.now()-timerStart)/1000);
+                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                trackPause("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
                                                 
                                             })
                                             player.addEventListener('seeking', function(){
-                                                trackSeek("Daily Motion",title,Math.round(event.target.currentTime),duration,url);
+                                                timer=Math.floor((Date.now()-timerStart)/1000);
+                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                trackSeek("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);
                                             })
                                             player.addEventListener('end', function(){
-                                                trackComplete("Daily Motion",title,Math.round(event.target.currentTime),duration,url);
+                                                timer=Math.floor((Date.now()-timerStart)/1000);
+                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                let total_videos_completed=1
+                                                trackComplete("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
                                             })
                                             player.addEventListener('timeupdate', function(){
+                                                timer=Math.floor((Date.now()-timerStart)/1000);
+                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                                 let percent_new=Math.round(event.target.currentTime/duration*100);
                                                 if(percent_new!==percent){
                                                     percent=percent_new;
                                                     if(percent===25||percent===50||percent===75||percent===90){
                                                         percentage=percent+'%'
-                                                        trackProgress("Daily Motion",title,Math.round(event.target.currentTime),duration,url,percentage)
+                                                        let total_videos_progress=1
+                                                        trackProgress("Daily Motion",title,Math.round(event.target.currentTime),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                                     }
                                                 }
                                             }) 
@@ -501,27 +787,41 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
                             var lastTime = -1;
                             var lastState=-1;
-                            var interval = 1000;
+                            var interval = 1500;
                             var percent = 0;
                             const duration=event.target.getDuration();
                             const title=event.target.getVideoData().title;
                             const url=event.target.getVideoUrl();
+                            let label=title+"-"+url  
 
                             var checkPlayerTime = function () {
+                                timer=Math.floor((Date.now()-timerStart)/1000);
+                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                 if (lastTime !== -1) {
                               
-                                    if(event.target.getPlayerState() === 1||(event.target.getPlayerState() === 2&&lastState===2)) {
+                                    if(event.target.getPlayerState() === 1) {
+                                        // console.log("current"+event.target.getCurrentTime()+" " + "last" +lastTime+" " +Math.abs(event.target.getCurrentTime() - lastTime - 1))
                                         if (Math.abs(event.target.getCurrentTime() - lastTime - 1) > 1) {
-                                            trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url)
+                                            trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label)
+                                        }else if(lastState!==1){
+                                            let total_videos_started=1
+                                                                                            
+                                            trackPlay("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);
                                         }
                                     }
-
+                                    if(event.target.getPlayerState() === 2&&lastState===2) {
+                                        if (Math.abs(event.target.getCurrentTime() - lastTime - 1) > 1) {
+                                            trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label)
+                                        }                                        
+                                    }
                                     let percent_new=Math.round(event.target.getCurrentTime()/duration*100);
                                     if(percent_new!==percent){
                                         percent=percent_new;
                                         if(percent===25||percent===50||percent===75||percent===90){
                                             percentage=percent+'%'
-                                            trackProgress("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,percentage)
+                                            let total_videos_progress=1
+                                            trackProgress("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                         }
                                     }
                                     
@@ -534,72 +834,29 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         }  
 
                         function onPlayerStateChange(event) {
-                            console.log('state change')
+                           
                             const duration=event.target.getDuration();
                             const title=event.target.getVideoData().title;
                             const url=event.target.getVideoUrl();
+                            timer=Math.floor((Date.now()-timerStart)/1000);
+                            let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                            let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                            let label=title+"-"+url 
+
                             switch(event.data) {
                                 case 0:
-                                    trackComplete("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url);
-                                    break;
-                                case 1:
-                                    trackPlay("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url);
+                                    let total_videos_completed=1
+                                    trackComplete("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
                                     break;
                                 case 2:
-                                    if(Math.round(event.target.getCurrentTime())!==duration){
-                                        trackPause("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url);
-                                    }
+                                    setTimeout(function() {
+                                        if ( event.target.getPlayerState() == 2 && Math.round(event.target.getCurrentTime())!==duration ) {
+                                            trackPause("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
+                                        }
+                                    }, 1000)
                                     break;
-
                             }
-                        }
-
-                        function trackPlay(player,title,position,length,url){
-                            analytics.track('Video Playback Started', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url
-                            });
-                        }
-                        function trackPause(player,title,position,length,url){
-                            analytics.track('Video Playback Paused', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url
-                            });
-                        }
-                        function trackSeek(player,title,position,length,url){
-                            analytics.track('Video Playback Seek', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url
-                            });
-                        }
-                        function trackComplete(player,title,position,length,url){
-                            analytics.track('Video Playback Completed', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url,
-                                video_progress:'100%'
-                            });
-                        }
-                        function trackProgress(player,title,position,length,url,progress){
-                            analytics.track('Video Playback Progress', {
-                                video_player: player,
-                                video_title:title,
-                                video_position:position,
-                                video_total_length:length,
-                                video_url:url,
-                                video_progress:progress
-                            });
+                                
                         }
                         //Uploaded videos
                         const videos=Array.prototype.slice.call(document.querySelectorAll('.wp-block-video video'));
@@ -607,43 +864,79 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             videos.forEach((video)=>{
                                 var duration;
                                 var percent=0;
-                                const title=video.nextElementSibling.innerHTML?video.nextElementSibling.innerHTML:'';
+                                const title=video.nextElementSibling?video.nextElementSibling.innerHTML:'';
                                 const url=video.src;
                                 const ext=url.substring(url.lastIndexOf("/")+1).split('.').pop();
-                                video.addEventListener("play", (event)=>{
-                                    duration=video.duration;
-                                    trackPlay(ext,title,Math.round(event.target.currentTime),Math.round(duration),url);
-                                })
-                                video.addEventListener("pause", (event)=>{
-                                    if(video.currentTime!==duration&&video.currentTime!==0){
-                                        trackPause(ext,title,Math.round(event.target.currentTime),Math.round(duration),url);
-                                    }
-                                })
+                                let label=title+"-"+url  
                                 var lastTime=0;
                                 var currentTime=0;
                                 var seekStart = null;
+                                var isSeeked= false;
+                                var isSeekTest;
+                                const SEEKEVENT_TIMEOUT = 200;
+
+                                video.addEventListener("play", (event)=>{
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                    duration=video.duration;
+                                    let total_videos_started=1
+
+                                    if(!isSeeked){
+                                    trackPlay(ext,title,Math.round(event.target.currentTime),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);
+                                    }
+                                })
+                                video.addEventListener("pause", (event)=>{
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+
+                                    if(video.currentTime!==duration&&video.currentTime!==0){
+                                        setTimeout(function() {
+                                            if ( video.paused ) {
+                                                trackPause(ext,title,Math.round(event.target.currentTime),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
+                                            }
+                                        }, 1000)
+                                    }
+                                })
+
                                 video.addEventListener("seeking", (event)=>{  
-                                    
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                                        
                                     if(seekStart === null){
                                         seekStart=lastTime
-                                        trackSeek(ext,title,Math.round(seekStart),Math.round(duration),url);   
+                                        trackSeek(ext,title,Math.round(seekStart),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);   
                                     }
             
                                 })
                                 video.addEventListener("seeked", (event)=>{  
                                     seekStart = null;
+                                    isSeeked=true;
+                                    setTimeout(function() {
+                                        isSeeked=false;
+                                    }, SEEKEVENT_TIMEOUT);
                                 })
                                 video.addEventListener("ended", (event)=>{
-                                    trackComplete(ext,title,Math.round(event.target.currentTime),Math.round(duration),url);
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                    let total_videos_completed=1
+                                    trackComplete(ext,title,Math.round(event.target.currentTime),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
                                 })
                                 video.addEventListener("timeupdate", (event)=>{
-                                    
+
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                     let percent_new=Math.round(video.currentTime/duration*100);
                                     if(percent_new!==percent){
                                         percent=percent_new;
                                         if(percent===25||percent===50||percent===75||percent===90){
                                             percentage=percent+'%'
-                                            trackProgress(ext,title,Math.round(event.target.currentTime),Math.round(duration),url,percentage)
+                                            let total_videos_progress=1
+                                            trackProgress(ext,title,Math.round(event.target.currentTime),Math.round(duration),url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                         }
                                     }
                                     lastTime = currentTime;
@@ -651,6 +944,176 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 })
                             })
                         }
+                        //Get query parameter
+                        function getParameterByName(name, url = window.location.href) {
+                            name = name.replace(/[\[\]]/g, '\\$&');
+                            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                                results = regex.exec(url);
+                            if (!results) return null;
+                            if (!results[2]) return '';
+                            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+                        }
+                        //Tracking functions
+                        function trackSearchLink(click_text,query,page_number,time_on_page,scroll_depth,timestamp,referrer,total_search_result_clicks,category,action,label,value){
+                            analytics.track("Search Results Page", {
+                                click_text: click_text,
+                                query:query,
+                                page_number:page_number,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                total_search_result_clicks:total_search_result_clicks,
+                                category:category,
+                                action:action,
+                                label:label,
+                                value:value
+                            });
+                        }
+                        function trackLink(message,click_text,destination_href,time_on_page,scroll_depth,timestamp,referrer,category,action,label){
+                            analytics.track(message, {
+                                click_text: click_text,
+                                destination_href:destination_href,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackDownloadLink(click_text,destination_href,file_type,time_on_page,scroll_depth,timestamp,referrer,total_downloads,category,action,label,value){
+                            analytics.track('Download Link Clicked', {
+                                click_text: click_text,
+                                destination_href:destination_href,
+                                file_type: file_type,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                total_downloads:total_downloads,
+                                category:category,
+                                action:action,
+                                label:label,
+                                value:value
+                            });
+                        }
+                        function trackOtherLink(message,destination_href,time_on_page,scroll_depth,timestamp,referrer,category,action,label){
+                            analytics.track(message, {
+                                destination_href:destination_href,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackPlay(player,title,position,length,url,time_on_page,scroll_depth,timestamp,referrer,total_videos_started,category,action,label){
+                            analytics.track('Video Playback Started', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                total_videos_started:total_videos_started,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackPause(player,title,position,length,url,time_on_page,scroll_depth,timestamp,referrer,category,action,label){
+                            analytics.track('Video Playback Paused', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackSeek(player,title,position,length,url,time_on_page,scroll_depth,timestamp,referrer,category,action,label){
+                            analytics.track('Video Playback Seek', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackComplete(player,title,position,length,url,time_on_page,scroll_depth,timestamp,referrer,total_videos_completed,category,action,label){
+                            analytics.track('Video Playback Completed', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                video_progress:'100%',
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                total_videos_completed:total_videos_completed,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackProgress(player,title,position,length,url,progress,time_on_page,scroll_depth,timestamp,referrer,total_videos_progress,category,action,label){
+                            analytics.track('Video Playback Progress', {
+                                video_player: player,
+                                video_title:title,
+                                video_position:position,
+                                video_total_length:length,
+                                video_url:url,
+                                video_progress:progress,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:timestamp,
+                                referrer:referrer,
+                                total_videos_progress:total_videos_progress,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        //Set parameter
+                        function getDocHeight() {
+                            var D = document;
+                            return Math.max(
+                                D.body.scrollHeight, D.documentElement.scrollHeight,
+                                D.body.offsetHeight, D.documentElement.offsetHeight,
+                                D.body.clientHeight, D.documentElement.clientHeight
+                            )
+                        }
+                        function getmeasurements(){
+                            winheight= window.innerHeight || (document.documentElement || document.body).clientHeight
+                            docheight = getDocHeight()
+                            trackLength = docheight - winheight
+                        }
+
+                        window.addEventListener("resize", function(){
+                            getmeasurements()
+                        }, false)
                     }
                 }
 
