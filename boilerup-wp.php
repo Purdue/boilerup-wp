@@ -4,7 +4,7 @@
    Plugin Name: Purdue University Branding 
    Plugin URI: http://www.purdue.edu
    description: Add Purdue University fonts, favicon and logos to WordPress
-   Version: 1.6.1
+   Version: 1.7.2
    Author: Purdue Marketing and Communications
    Author URI: https://marcom.purdue.edu
 */
@@ -34,16 +34,29 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
 		private static function includes() {
             require_once dirname( __FILE__ ) . '/inc/class-segment-tracker.php';
+
+            require_once dirname( __FILE__ ) . '/admin/boilerup-config-options.php';
+            new PurdueBranding_Settings_Page();
 		}
 
 		private static function hooks() {
+            $settings = get_option('bolierup_branding');
+
             //Brand Fonts
-            add_action( 'wp_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
-            add_action( 'wp_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
-            add_action( 'wp_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
-            
-            // FavIcon
-            add_action( 'wp_head', array( __CLASS__, 'add_header_icons' ) );
+            if ( ! isset($settings['boilerup-brandfonts']) ) {
+                add_action( 'wp_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
+                add_action( 'wp_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
+                add_action( 'wp_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
+            }
+
+            // Favicon
+            if ( ! isset($settings['boilerup-favicon']) ) {
+                add_action( 'wp_head', array( __CLASS__, 'add_header_icons' ) );
+            }
+
+            if ( isset($settings['boilerup-systemtest']) ) {
+                add_filter( 'site_status_tests', array( __CLASS__, 'disable_managed_tests') );
+            }
 
             // Login Form Branding
             add_action( 'login_enqueue_scripts', array( __CLASS__, 'my_login_logo') );
@@ -72,6 +85,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
         
         public static function add_header_icons() {
+            print_r(get_option('bolierup_branding'));
             ?>
 
             <link rel="shortcut icon" href="<?php echo esc_url( self::$myURL, 'favicon/favicon.ico'); ?>" type="image/x-icon" />
@@ -160,6 +174,32 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             }
             </style>
         <?php }
+
+        /** 
+         * Disable health checks for managed features
+         *
+         * These tests aren't useful in this environment, and distract from
+         * legitimate tests.
+         */
+        public static function disable_managed_tests( $tests ) {
+            // The WordPress version is controlled by monthly auto-updates
+            unset( $tests['direct']['wordpress_version'] );
+            
+            // The PHP version is set by the system vendor and cannot be updated
+            unset( $tests['direct']['php_version'] );
+            
+            // The MySQL version is set by the ITIS DBA team and changes slowly
+            unset( $tests['direct']['sql_server'] );
+            
+            // REST isn't available off campus for security reasons
+            unset( $tests['direct']['rest_availability'] );
+            
+            // WordPress isn't allowed to update itself for security reasons
+            unset( $tests['async']['background_updates'] );
+            
+            // Send overrides to WordPress
+            return $tests;
+        }
     }
 
     new PurdueBranding();
