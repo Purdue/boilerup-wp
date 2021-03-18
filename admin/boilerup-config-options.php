@@ -23,7 +23,7 @@ if ( ! class_exists( 'PurdueBranding_Settings_Page' ) ) :
 				esc_html__( 'Purdue Branding', 'purdue' ),
 				'manage_options',
 				'boilerup',
-				array( $this, 'save_settings' ), 99
+				array( $this, 'save_settings' ), 1000
 			);
 	
 		}
@@ -120,10 +120,11 @@ if ( ! class_exists( 'PurdueBranding_Settings_Page' ) ) :
 	
 			// Set default value.
 			// $value = isset( $options['boilerup-systemtest'] ) ? $options['boilerup-systemtest'] : '';
-			$value = isset($_ENV['PANTHEON_ENVIRONMENT']) ? '' : 'checked';
-
+			$value = isset($_ENV['PANTHEON_ENVIRONMENT']) ? '0' : '1';
+			
 			// Field output.
-			echo '<input type="checkbox" name="bolierup_branding[boilerup-systemtest]" class="boilerup-systemtest_field" value="checked" disabled ' . checked( $value, 'checked', false ) . '> ' . __( '', 'purdue' );
+			echo '<input type="hidden" name="bolierup_branding[boilerup-systemtest]" class="boilerup-systemtest_field" value="' . $value . '">';
+			echo isset($_ENV['PANTHEON_ENVIRONMENT']) ? '<bstyle="color: red;">DISABLED</b>' : '<b style="color: green;">ENABLED</b>';
 	
 		}
 	
