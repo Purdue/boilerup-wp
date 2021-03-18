@@ -9,6 +9,7 @@ Provide a consistent method of managing the Purdue brand across multiple WordPre
 ## Installation
 
 1. Upload the directory brandfonts and all its contents to the /wp-content/mu-plugins/ directory
+2. RECOMMEND that you include [bedrock-autoloader plugin](https://github.com/roots/bedrock-autoloader) to support Must Use plugin install in subfolders
 
 ### or with Composer
 
@@ -26,6 +27,14 @@ Provide a consistent method of managing the Purdue brand across multiple WordPre
 ```
 
 ## Change Log
+#### [1.7.3] - 2020-03-18
+- ADD: Admin Settings options
+- ADD: Remove "tests" when installed on internal Purdue network
+- UPDATED: Code logic and Segment file location
+
+#### [1.6.0] - 2020-03-17
+- UPDATE: File location fix for internal Purdue install
+
 #### [1.5.1] - 2020-03-12
 - UPDATE: Disable Segment Customizations
 
