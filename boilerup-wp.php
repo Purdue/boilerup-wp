@@ -4,7 +4,7 @@
    Plugin Name: Purdue University Branding 
    Plugin URI: http://www.purdue.edu
    description: Add Purdue University fonts, favicon and logos to WordPress
-   Version: 1.6.0
+   Version: 1.6.1
    Author: Purdue Marketing and Communications
    Author URI: https://marcom.purdue.edu
 */
@@ -27,7 +27,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             } else {
                 self::$myURL = plugin_dir_url( __FILE__ );
             }
-            // self::$myURL = WP_CONTENT_URL . '/mu-plugins/boilerup-wp/';
+            
 			self::includes();
 			self::hooks();
 		}
@@ -72,26 +72,25 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
         
         public static function add_header_icons() {
-            echo "<!-- DIR CONST: " . WP_CONTENT_DIR . '/mu-plugins/' . " -->";
             ?>
 
-            <link rel="shortcut icon" href="<?php echo self::$myURL . 'favicon/favicon.ico'; ?>" type="image/x-icon" />
-            <link rel="apple-touch-icon" sizes="57x57" href="<?php echo self::$myURL . 'favicon/apple-icon-57x57.png';?>">
-            <link rel="apple-touch-icon" sizes="60x60" href="<?php echo self::$myURL . 'favicon/apple-icon-60x60.png';?>">
-            <link rel="apple-touch-icon" sizes="72x72" href="<?php echo self::$myURL . 'favicon/apple-icon-72x72.png';?>">
-            <link rel="apple-touch-icon" sizes="76x76" href="<?php echo self::$myURL . 'favicon/apple-icon-76x76.png';?>">
-            <link rel="apple-touch-icon" sizes="114x114" href="<?php echo self::$myURL . 'favicon/apple-icon-114x114.png';?>">
-            <link rel="apple-touch-icon" sizes="120x120" href="<?php echo self::$myURL . 'favicon/apple-icon-120x120.png';?>">
-            <link rel="apple-touch-icon" sizes="144x144" href="<?php echo self::$myURL . 'favicon/apple-icon-144x144.png';?>">
-            <link rel="apple-touch-icon" sizes="152x152" href="<?php echo self::$myURL . 'favicon/apple-icon-152x152.png';?>">
-            <link rel="apple-touch-icon" sizes="180x180" href="<?php echo self::$myURL . 'favicon/apple-icon-180x180.png';?>">
-            <link rel="icon" type="image/png" sizes="192x192"  href="<?php echo self::$myURL . 'favicon/android-icon-192x192.png';?>">
-            <link rel="icon" type="image/png" sizes="32x32" href="<?php echo self::$myURL . 'favicon/favicon-32x32.png';?>">
-            <link rel="icon" type="image/png" sizes="96x96" href="<?php echo self::$myURL . 'favicon/favicon-96x96.png';?>">
-            <link rel="icon" type="image/png" sizes="16x16" href="<?php echo self::$myURL . 'favicon/favicon-16x16.png';?>">
-            <link rel="manifest" href="<?php echo self::$myURL . 'favicon/manifest.json';?>">
+            <link rel="shortcut icon" href="<?php echo esc_url( self::$myURL, 'favicon/favicon.ico'); ?>" type="image/x-icon" />
+            <link rel="apple-touch-icon" sizes="57x57" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-57x57.png');?>">
+            <link rel="apple-touch-icon" sizes="60x60" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-60x60.png');?>">
+            <link rel="apple-touch-icon" sizes="72x72" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-72x72.png');?>">
+            <link rel="apple-touch-icon" sizes="76x76" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-76x76.png');?>">
+            <link rel="apple-touch-icon" sizes="114x114" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-114x114.png');?>">
+            <link rel="apple-touch-icon" sizes="120x120" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-120x120.png');?>">
+            <link rel="apple-touch-icon" sizes="144x144" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-144x144.png');?>">
+            <link rel="apple-touch-icon" sizes="152x152" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-152x152.png');?>">
+            <link rel="apple-touch-icon" sizes="180x180" href="<?php echo esc_url( self::$myURL, 'favicon/apple-icon-180x180.png');?>">
+            <link rel="icon" type="image/png" sizes="192x192"  href="<?php echo esc_url( self::$myURL, 'favicon/android-icon-192x192.png');?>">
+            <link rel="icon" type="image/png" sizes="32x32" href="<?php echo esc_url( self::$myURL, 'favicon/favicon-32x32.png');?>">
+            <link rel="icon" type="image/png" sizes="96x96" href="<?php echo esc_url( self::$myURL, 'favicon/favicon-96x96.png');?>">
+            <link rel="icon" type="image/png" sizes="16x16" href="<?php echo esc_url( self::$myURL, 'favicon/favicon-16x16.png');?>">
+            <link rel="manifest" href="<?php echo esc_url( self::$myURL, 'favicon/manifest.json');?>">
             <meta name="msapplication-TileColor" content="#ffffff">
-            <meta name="msapplication-TileImage" content="<?php echo self::$myURL . 'favicon/ms-icon-144x144.png';?>">
+            <meta name="msapplication-TileImage" content="<?php echo esc_url( self::$myURL, 'favicon/ms-icon-144x144.png');?>">
             <meta name="theme-color" content="#ffffff">
             <?php
         }
@@ -107,7 +106,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
         public static function my_login_logo() { ?>
             <style type="text/css">
             #login h1 a, .login h1 a {
-                background-image: url(<?php echo  self::$myURL . 'img/purdue-logo.png'; ?>) !important;
+                background-image: url(<?php echo self::$myURL . 'img/purdue-logo.png'; ?>) !important;
                 height:57px !important;
                 width:320px !important;
                 background-size: 320px 57px !important;
