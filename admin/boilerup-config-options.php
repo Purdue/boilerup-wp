@@ -23,7 +23,7 @@ if ( ! class_exists( 'PurdueBranding_Settings_Page' ) ) :
 				esc_html__( 'Purdue Branding', 'purdue' ),
 				'manage_options',
 				'boilerup',
-				array( $this, 'save_settings' )
+				array( $this, 'save_settings' ), 99
 			);
 	
 		}
