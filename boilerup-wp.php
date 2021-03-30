@@ -4,7 +4,7 @@
    Plugin Name: Purdue University Branding 
    Plugin URI: http://www.purdue.edu
    description: Add Purdue University fonts, favicon and logos to WordPress
-   Version: 1.7.3
+   Version: 1.8.0
    Author: Purdue Marketing and Communications
    Author URI: https://marcom.purdue.edu
 */
@@ -47,6 +47,10 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                 add_action( 'wp_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
                 add_action( 'wp_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
                 add_action( 'wp_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
+
+                add_action( 'admin_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
+                add_action( 'admin_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
+                add_action( 'admin_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
             }
 
             // Favicon
