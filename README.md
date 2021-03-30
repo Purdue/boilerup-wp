@@ -27,6 +27,9 @@ Provide a consistent method of managing the Purdue brand across multiple WordPre
 ```
 
 ## Change Log
+#### [1.8.0] - 2020-03-30
+- ADD: Brand fonts added to admin pages
+
 #### [1.7.3] - 2020-03-18
 - ADD: Admin Settings options
 - ADD: Remove "tests" when installed on internal Purdue network
