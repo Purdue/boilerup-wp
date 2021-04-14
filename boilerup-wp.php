@@ -33,6 +33,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
             add_action( 'wp_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
+            add_action( 'admin_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
+            add_action( 'admin_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
+            add_action( 'admin_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
             // add_action( 'wp_footer', array( __CLASS__, 'add_segment_form_identify' ), 5 );
             add_action( 'wp_footer', array( __CLASS__, 'add_segment_body_code' ));
             add_action( 'wp_head', array( __CLASS__, 'add_segment_code' ), 5 );
@@ -144,6 +147,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         let item_country="gform_country_"+formId  
                         let item_fail="gform_fail_"+formId  
                         let item_submit="gform_submit_"+formId  
+                        let item_userType="gform_userType_"+formId
 
                         timer=Math.floor((Date.now()-timerStart)/1000);
                         sessionStorage.setItem(item_time, timer)  
@@ -161,6 +165,16 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         let state=form.querySelector('.address_state>input')?form.querySelector('.address_state>input').value : null
                         let postcode=form.querySelector('.address_zip>input')?form.querySelector('.address_zip>input').value : null
                         let country=form.querySelector('.address_country>select')?form.querySelector('.address_country>select').value : null
+
+                        let userType=sessionStorage.getItem(item_userType);  
+                        Array.prototype.slice.call(form.querySelectorAll('label'),0).forEach((label)=>{
+
+                            if(label.textContent.indexOf("User Type")!==-1){
+                                if(userType === "null"){
+                                    sessionStorage.setItem(item_userType, label.nextElementSibling.querySelector('select').value)
+                                }
+                            }
+                        })
 
                         sessionStorage.setItem(item_fname, fname)
                         sessionStorage.setItem(item_lname, lname)
@@ -180,6 +194,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                        
                         //G-forms
                         const gFormWrappers = Array.prototype.slice.call(document.querySelectorAll('.gform_wrapper'), 0);
+                        
                         if(gFormWrappers&&gFormWrappers.length>0){
                             gFormWrappers.forEach((wrapper,index)=>{
                             let form=wrapper.querySelector('form')
@@ -192,7 +207,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
                             var item_userType="gform_userType_"+formId
                             var session_gform_userType=sessionStorage.getItem(item_userType);
-                                !session_gform_userType?sessionStorage.setItem(item_userType, ""):'';  
+                                !session_gform_userType?sessionStorage.setItem(item_userType, null):'';  
                            
                             var item_time="gform_time_"+formId  
                             var session_item_time=sessionStorage.getItem(item_time);  
@@ -208,31 +223,31 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
                             var item_fname="gform_fname_"+formId  
                             var session_item_fname=sessionStorage.getItem(item_fname);  
-                                !session_item_fname?sessionStorage.setItem(item_fname, ""):'';  
+                                !session_item_fname?sessionStorage.setItem(item_fname, null):'';  
 
                             var item_lname="gform_lname_"+formId  
                             var session_item_lname=sessionStorage.getItem(item_lname);  
-                                !session_item_lname?sessionStorage.setItem(item_lname, ""):''; 
+                                !session_item_lname?sessionStorage.setItem(item_lname, null):''; 
 
                             var item_email="gform_email_"+formId  
                             var session_item_email=sessionStorage.getItem(item_email);  
-                                !session_item_email?sessionStorage.setItem(item_email, ""):'';  
+                                !session_item_email?sessionStorage.setItem(item_email, null):'';  
 
                             var item_phone="gform_phone_"+formId  
                             var session_item_phone=sessionStorage.getItem(item_phone);  
-                                !session_item_phone?sessionStorage.setItem(item_phone, ""):''; 
+                                !session_item_phone?sessionStorage.setItem(item_phone, null):''; 
                                 
                             var item_state="gform_state_"+formId  
                             var session_item_state=sessionStorage.getItem(item_state);  
-                                !session_item_state?sessionStorage.setItem(item_state, ""):'';      
+                                !session_item_state?sessionStorage.setItem(item_state, null):'';      
 
                             var item_zip="gform_zip_"+formId  
                             var session_item_zip=sessionStorage.getItem(item_zip);  
-                                !session_item_zip?sessionStorage.setItem(item_zip, ""):'';   
+                                !session_item_zip?sessionStorage.setItem(item_zip, null):'';   
 
                             var item_country="gform_country_"+formId  
                             var session_item_country=sessionStorage.getItem(item_country);  
-                                !session_item_country?sessionStorage.setItem(item_country, ""):'';  
+                                !session_item_country?sessionStorage.setItem(item_country, null):'';  
 
                             var item_fail="gform_fail_"+formId  
                             var session_item_fail=sessionStorage.getItem(item_fail);  
@@ -262,7 +277,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                 form_name:formName,
                                                 time_on_page:session_item_time,
                                                 scroll_depth:session_item_depth,
-                                                timestamp:timestamp,
+                                                timestamp:JSON.stringify(timestamp),
                                                 referrer:session_item_referrer,
                                                 validation_message:messageText,
                                                 category:"Form submit failed",
@@ -274,13 +289,13 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             sessionStorage.setItem(item_time, "")  
                                             sessionStorage.setItem(item_referrer, "")
                                             sessionStorage.setItem(item_depth, "")  
-                                            sessionStorage.setItem(item_fname, "")
-                                            sessionStorage.setItem(item_lname, "")
-                                            sessionStorage.setItem(item_email, "")
-                                            sessionStorage.setItem(item_phone, "")
-                                            sessionStorage.setItem(item_state, "")
-                                            sessionStorage.setItem(item_zip, "")
-                                            sessionStorage.setItem(item_country, "")
+                                            sessionStorage.setItem(item_fname, null)
+                                            sessionStorage.setItem(item_lname, null)
+                                            sessionStorage.setItem(item_email, null)
+                                            sessionStorage.setItem(item_phone, null)
+                                            sessionStorage.setItem(item_state, null)
+                                            sessionStorage.setItem(item_zip, null)
+                                            sessionStorage.setItem(item_country, null)
                                             sessionStorage.setItem(item_fail, "")
                                             sessionStorage.setItem(item_submit, "")
                                         }                                        
@@ -292,7 +307,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         //form submit succeeded
                         var confirm_messages=Array.prototype.slice.call(document.querySelectorAll('.gform_confirmation_message'),0);
                         if(confirm_messages&&confirm_messages.length>0){
-                            console.log("confirm_message")
+                            
                             confirm_messages.forEach((message)=>{
                                 let formId=message.id.substring(message.id.lastIndexOf("_")+1)
 
@@ -335,6 +350,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 var item_submit="gform_submit_"+formId  
                                 var session_item_submit=sessionStorage.getItem(item_submit);  
 
+                                var item_fail="gform_fail_"+formId  
+                                var session_item_fail=sessionStorage.getItem(item_fail);  
+
                                 if(session_item_submit&&session_item_submit!==""){
                                     let traits = {
                                         first_name : session_item_fname,
@@ -350,7 +368,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         form_name:session_gform_formName,
                                         time_on_page:session_item_time,
                                         scroll_depth:session_item_depth,
-                                        timestamp:timestamp,
+                                        timestamp:JSON.stringify(timestamp),
                                         referrer:session_item_referrer,
                                         user_type:session_gform_userType,
                                         total_form_submits:1,
@@ -363,14 +381,16 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                     sessionStorage.setItem(item_time, "")  
                                     sessionStorage.setItem(item_referrer, "")
                                     sessionStorage.setItem(item_depth, "")  
-                                    sessionStorage.setItem(item_fname, "")
-                                    sessionStorage.setItem(item_lname, "")
-                                    sessionStorage.setItem(item_email, "")
-                                    sessionStorage.setItem(item_phone, "")
-                                    sessionStorage.setItem(item_state, "")
-                                    sessionStorage.setItem(item_zip, "")
-                                    sessionStorage.setItem(item_country, "")
+                                    sessionStorage.setItem(item_fname, null)
+                                    sessionStorage.setItem(item_lname, null)
+                                    sessionStorage.setItem(item_email, null)
+                                    sessionStorage.setItem(item_phone, null)
+                                    sessionStorage.setItem(item_state, null)
+                                    sessionStorage.setItem(item_zip, null)
+                                    sessionStorage.setItem(item_country, null)
+                                    sessionStorage.setItem(item_fail, "")
                                     sessionStorage.setItem(item_submit, "")
+                                    sessionStorage.setItem(item_userType, null)
                                 } 
                             })
                         }
@@ -392,34 +412,43 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         timer=Math.floor((Date.now()-timerStart)/1000);
                                         let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
                                         let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-
+                                        let is_download=false
+                                        
                                         if(ext){
                                             let total_downloads=1;
                                             let file_type;
                                             if(ext==="pdf"){
+                                                is_download=true
                                                 file_type="pdf";
                                                 trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
                                             }else if(ext==="jpg"||ext==="png"||ext==="gif"||ext==="jpeg"||ext==="tiff"||ext==="tif"||ext==="svg"||ext==="psd"||ext==="ps"||ext==="ico"||ext==="bmp"||ext==="ai"||ext==="eps"){
+                                                is_download=true
                                                 file_type="image";
                                                 trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
                                             }else if(ext==="doc"||ext==="docx"||ext==="xls"||ext==="xlsx"||ext==="ppt"||ext==="pptx"||ext==="key"||ext==="pages"||ext==="txt"||ext==="rtf"||ext==="odt"||ext==="ods"||ext==="csv"||ext==="tab"||ext==="vsd"){
+                                                is_download=true
                                                 file_type="other doc";
                                                 trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
                                             }else if(ext==="aif"||ext==="mp3"||ext==="mpa"||ext==="wav"||ext==="wma"){
+                                                is_download=true
                                                 file_type="audio";
                                                 trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
                                             }else if(ext==="pkg"||ext==="rar"||ext==="zip"||ext==="dmg"||ext==="exe"||ext==="dat"||ext==="xml"){
+                                                is_download=true
                                                 file_type="files";
                                                 trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
                                             }else if(ext==="avi"||ext==="fiv"||ext==="h264"||ext==="h265"||ext==="m4v"||ext==="mov"||ext==="mp4"||ext==="mpg"||ext==="mpeg"||ext==="wmv"){
+                                                is_download=true
                                                 file_type="video";
                                                 trackDownloadLink(link.innerText,href,file_type,timer,scrollDepth,timestamp,document.referrer,total_downloads,"Download",file_type,href,total_downloads);
                                             }
                                         }
                                         if(href.substring(0,href.indexOf(":")+1)==="mailto:"){
-                                            trackOtherLink('Email Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Email links",href)
+                                            let total_email_clicks=1
+                                            trackEmailLink('Email Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,total_email_clicks,"Clicks","Email links",href)
                                         }else if(href.substring(0,href.indexOf(":")+1)==="tel:"){
-                                            trackOtherLink('Phone Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Phone links",href)
+                                            let total_phone_clicks=1
+                                            trackPhoneLink('Phone Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,total_phone_clicks,"Clicks","Phone links",href)
                                         }
                                         if(link.host&&link.host!==""&&link.host!==window.location.host){
                                             if(link.host.indexOf("facebook.com")!==-1||
@@ -431,7 +460,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                 link.host.indexOf("pinterest.com")!==-1||
                                                 link.host.indexOf("amazon.com")!==-1){
                                                     trackOtherLink('Social Link Clicked',href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Social links",href)
-                                            }else{
+                                            }else if(!is_download){
                                                 trackLink('External Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","Outbound links",href)
                                             }
 
@@ -447,7 +476,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             link.classList.contains('pu-proofpoint__button')||
                                             link.classList.contains('cta-button')||
                                             link.parentElement.parentElement.parentElement.classList.contains('navbar-end')){
-                                                let label=link.innerText+"-"+href;
+                                                let label=link.innerText+" - "+href;
                                                 trackLink('CTA Link Clicked',link.innerText,href,timer,scrollDepth,timestamp,document.referrer,"Clicks","CTA links",label)
                                         }
                                         //Search Results Page
@@ -459,7 +488,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                 if(document.querySelector('.pagination>.nav-links>.current')){
                                                     pageN=document.querySelector('.pagination>.nav-links>.current').innerHTML;
                                                 }
-                                                let label=link.innerText+"-"+pageN;
+                                                let label=link.innerText+" - "+pageN;
                                                 trackSearchLink(link.innerText,query,pageN,timer,scrollDepth,timestamp,document.referrer,total_search_result_clicks,"Site search click",query,label,pageN)
                                             }
                                         }
@@ -473,8 +502,8 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         //404 page 
                         if(h1Text==="Page Not Found"){
                             analytics.track('404 Page Viewed', {
-                                page_href: window.location.href,
-                                timestamp:timestamp,
+                                page_url: window.location.href,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer: document.referrer,
                                 category: "404 error",
                                 action:window.location.href,
@@ -496,7 +525,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                     query:phrase,
                                     total_searches:total_searches,
                                     time_on_page:timer,
-                                    timestamp:timestamp,
+                                    timestamp:JSON.stringify(timestamp),
                                     referrer:document.referrer,
                                     category:"site search performed",
                                     action:phrase,
@@ -528,7 +557,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                     if(googleSearchLoaded.querySelector('.gsc-cursor-current-page')){
                                                         pageN=googleSearchLoaded.querySelector('.gsc-cursor-current-page').innerHTML;
                                                     }
-                                                    let label=link.innerText+"-"+pageN;
+                                                    let label=link.innerText+" - "+pageN;
                                                     trackSearchLink(link.innerText,query,pageN,timer,scrollDepth,timestamp,document.referrer,total_search_result_clicks,"Site search click",query,label,pageN)
                                                     console.log(link)
                                                     setTimeout(function(){ 
@@ -630,7 +659,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                         player.getVideoTitle(),
                                                         player.getDuration(),
                                                     ]);
-                                                    let label=title+"-"+url
+                                                    let label=title+" - "+url
                                                     player.on('play', function(event) {
                                                         timer=Math.floor((Date.now()-timerStart)/1000);
                                                         let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
@@ -717,6 +746,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             var duration;
                                             var title;
                                             var percent=0;
+                                            var label;
                                             DM.api(
                                                 `/video/${videoID}`,
                                                 { fields: ['duration', 'title' ]},
@@ -724,13 +754,13 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                     // result is an Object with all the fields wanted
                                                     duration=result.duration;
                                                     title=result.title;
+                                                    label=title+" - "+url;
                                                 }
                                             )
                                             var player =DM.player(iframe,{
                                                 video: videoID
                                             });
-                                            let label=title+"-"+url  
-
+                                            
                                             player.addEventListener('play', function(event){
                                                 timer=Math.floor((Date.now()-timerStart)/1000);
                                                 let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
@@ -792,7 +822,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             const duration=event.target.getDuration();
                             const title=event.target.getVideoData().title;
                             const url=event.target.getVideoUrl();
-                            let label=title+"-"+url  
+                            let label=title+" - "+url  
 
                             var checkPlayerTime = function () {
                                 timer=Math.floor((Date.now()-timerStart)/1000);
@@ -801,7 +831,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 if (lastTime !== -1) {
                               
                                     if(event.target.getPlayerState() === 1) {
-                                        // console.log("current"+event.target.getCurrentTime()+" " + "last" +lastTime+" " +Math.abs(event.target.getCurrentTime() - lastTime - 1))
                                         if (Math.abs(event.target.getCurrentTime() - lastTime - 1) > 1) {
                                             trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label)
                                         }else if(lastState!==1){
@@ -841,7 +870,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             timer=Math.floor((Date.now()-timerStart)/1000);
                             let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
                             let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                            let label=title+"-"+url 
+                            let label=title+" - "+url 
 
                             switch(event.data) {
                                 case 0:
@@ -867,7 +896,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 const title=video.nextElementSibling?video.nextElementSibling.innerHTML:'';
                                 const url=video.src;
                                 const ext=url.substring(url.lastIndexOf("/")+1).split('.').pop();
-                                let label=title+"-"+url  
+                                let label=title+" - "+url  
                                 var lastTime=0;
                                 var currentTime=0;
                                 var seekStart = null;
@@ -961,7 +990,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 page_number:page_number,
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 total_search_result_clicks:total_search_result_clicks,
                                 category:category,
@@ -976,7 +1005,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 destination_href:destination_href,
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 category:category,
                                 action:action,
@@ -990,7 +1019,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 file_type: file_type,
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 total_downloads:total_downloads,
                                 category:category,
@@ -999,12 +1028,38 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 value:value
                             });
                         }
+                        function trackEmailLink(message,destination_href,time_on_page,scroll_depth,timestamp,referrer,total_email_clicks,category,action,label){
+                            analytics.track(message, {
+                                destination_href:destination_href,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:JSON.stringify(timestamp),
+                                referrer:referrer,
+                                total_email_clicks:total_email_clicks,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
+                        function trackPhoneLink(message,destination_href,time_on_page,scroll_depth,timestamp,referrer,total_phone_clicks,category,action,label){
+                            analytics.track(message, {
+                                destination_href:destination_href,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:JSON.stringify(timestamp),
+                                referrer:referrer,
+                                total_phone_clicks:total_phone_clicks,
+                                category:category,
+                                action:action,
+                                label:label
+                            });
+                        }
                         function trackOtherLink(message,destination_href,time_on_page,scroll_depth,timestamp,referrer,category,action,label){
                             analytics.track(message, {
                                 destination_href:destination_href,
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 category:category,
                                 action:action,
@@ -1018,9 +1073,10 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 video_position:position,
                                 video_total_length:length,
                                 video_url:url,
+                                video_status: "play",
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 total_videos_started:total_videos_started,
                                 category:category,
@@ -1035,9 +1091,10 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 video_position:position,
                                 video_total_length:length,
                                 video_url:url,
+                                video_status: "pause",
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 category:category,
                                 action:action,
@@ -1051,9 +1108,10 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 video_position:position,
                                 video_total_length:length,
                                 video_url:url,
+                                video_status: "seek",
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 category:category,
                                 action:action,
@@ -1067,12 +1125,14 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 video_position:position,
                                 video_total_length:length,
                                 video_url:url,
+                                video_status:"complete",
                                 video_progress:'100%',
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 total_videos_completed:total_videos_completed,
+                                total_videos_progress:1,
                                 category:category,
                                 action:action,
                                 label:label
@@ -1085,10 +1145,11 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 video_position:position,
                                 video_total_length:length,
                                 video_url:url,
+                                video_status:"progress",
                                 video_progress:progress,
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
-                                timestamp:timestamp,
+                                timestamp:JSON.stringify(timestamp),
                                 referrer:referrer,
                                 total_videos_progress:total_videos_progress,
                                 category:category,
