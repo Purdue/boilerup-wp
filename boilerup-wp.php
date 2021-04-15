@@ -191,6 +191,12 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         }, 300);                 
                     },
                     init: function() {
+
+                        window.onload=function(){
+                            timer=0;
+                            timerStart=Date.now(); 
+                            getmeasurements();
+                        }
                        
                         //G-forms
                         const gFormWrappers = Array.prototype.slice.call(document.querySelectorAll('.gform_wrapper'), 0);
@@ -589,230 +595,222 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             checkLink;
 
                         }
+                       
                         //Embeded videos
                         var youtubePlayers=[];
                         var vimeoPlayers=[];
-                        
-                        window.onload=function(){
+                        const youtube=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-youtube iframe'),0);
+                        const vimeo=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-vimeo iframe'),0);
+                        const dmotion=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-dailymotion iframe'),0);
 
-                            timer=0;
-                            timerStart=Date.now(); 
-                            getmeasurements();
-
-                            const youtube=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-youtube iframe'),0);
-                            const vimeo=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-vimeo iframe'),0);
-                            const dmotion=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-dailymotion iframe'),0);
-
-                            //YouTube videos
-                            if(youtube&&youtube.length>0){
-                                let tag = document.createElement('script');
-                                tag.src = "https://www.youtube.com/iframe_api";
-                                let firstScriptTag = document.getElementsByTagName('script')[0];
-                                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                                let checkYT = setInterval(function () {
-                                    if(YT&&YT.loaded){
-                                        youtube.forEach((iframe)=>{                                           
-                                            if(iframe.src.indexOf("&origin=")!==-1){
-                                                    iframe.src=iframe.src.substring(0,iframe.src.indexOf("&origin"))
-                                            }
-                                            if(iframe.src.indexOf("&enablejsapi=1")===-1){
-                                                    iframe.src=iframe.src+"&enablejsapi=1"
-                                            }
-                                            
-                                            if(!iframe.id){
-                                                iframe.id="youtube"+iframe.src.split( 'embed/' )[1].split( '?' )[0]
-                                            }                                 
-                                            var player=new YT.Player( iframe.id, {
-                                                videoId:iframe.src.split( 'embed/' )[1].split( '?' )[0],
-                                                events: { 
-                                                    'onReady': onPlayerReady,
-                                                    'onStateChange': onPlayerStateChange 
-                                                }
-                                            }); 
-                                            youtubePlayers.push({
-                                                "id" :iframe.id,
-                                                "player" : player
-                                            });                             
-                                        })
+                        //YouTube videos
+                        if(youtube&&youtube.length>0){
+                            let tag = document.createElement('script');
+                            tag.src = "https://www.youtube.com/iframe_api";
+                            let firstScriptTag = document.getElementsByTagName('script')[0];
+                            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                            let checkYT = setInterval(function () {
+                                if(typeof YT !== 'undefined'&&YT.loaded){
+                                    youtube.forEach((iframe)=>{                                           
+                                        if(iframe.src.indexOf("&origin=")!==-1){
+                                                iframe.src=iframe.src.substring(0,iframe.src.indexOf("&origin"))
+                                        }
+                                        if(iframe.src.indexOf("&enablejsapi=1")===-1){
+                                                iframe.src=iframe.src+"&enablejsapi=1"
+                                        }
                                         
-                                       clearInterval(checkYT);
-                                    }
-                                }, 100);
-                                checkYT;
-                            }
-                            //Vimeo videos
-                            if(vimeo&&vimeo.length>0){
-                                let tag = document.createElement('script');
-                                tag.src = "https://player.vimeo.com/api/player.js";
-                                let firstScriptTag = document.getElementsByTagName('script')[0];
-                                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                                let checkVimeo = setInterval(function () {
-                                    if(Vimeo){
-                                        vimeo.forEach((iframe)=>{ 
-                                            var url=iframe.src
-                                            var percent=0;
-                                            var player = new Vimeo.Player(iframe);
-                                      
-                                            async function viemoPlay(){
-                                                try {
-                                                    const [title, duration] = await Promise.all([
-                                                        player.getVideoTitle(),
-                                                        player.getDuration(),
-                                                    ]);
-                                                    let label=title+" - "+url
-                                                    player.on('play', function(event) {
-                                                        timer=Math.floor((Date.now()-timerStart)/1000);
-                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                        let total_videos_started=1
-                                                                   
-                                                        trackPlay("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);
-                                                    });
-                                                    player.on('pause', function(event) {
-                                                        timer=Math.floor((Date.now()-timerStart)/1000);
-                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                        if(Math.round(event.seconds)!==duration){
-                                                            trackPause("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
-                                                        }
-                                                       
-                                                    });
-                                                    player.on('ended', function(event) {
-                                                        timer=Math.floor((Date.now()-timerStart)/1000);
-                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                        let total_videos_completed=1
-                                                        trackComplete("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
-                                                    });
-                                                  
-                                                    var lastTime=0;
-                                                    var currentTime=0;
-                                                    var seekStart = null;
-                                                    player.on('seeking', function(event) {
-                                                        timer=Math.floor((Date.now()-timerStart)/1000);
-                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                        if(seekStart === null){
-                                                            seekStart=lastTime
-                                                            trackSeek("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);   
-                                                        }
+                                        if(!iframe.id){
+                                            iframe.id="youtube"+iframe.src.split( 'embed/' )[1].split( '?' )[0]
+                                        }                                 
+                                        var player=new YT.Player( iframe.id, {
+                                            videoId:iframe.src.split( 'embed/' )[1].split( '?' )[0],
+                                            events: { 
+                                                'onReady': onPlayerReady,
+                                                'onStateChange': onPlayerStateChange 
+                                            }
+                                        }); 
+                                        youtubePlayers.push({
+                                            "id" :iframe.id,
+                                            "player" : player
+                                        });                             
+                                    })
+                                    
+                                    clearInterval(checkYT);
+                                }
+                            }, 100);
+                            checkYT;
+                        }
+                        //Vimeo videos
+                        if(vimeo&&vimeo.length>0){
+                            let tag = document.createElement('script');
+                            tag.src = "https://player.vimeo.com/api/player.js";
+                            let firstScriptTag = document.getElementsByTagName('script')[0];
+                            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                            let checkVimeo = setInterval(function () {
+                                if(typeof Vimeo !== 'undefined'){
+                                    vimeo.forEach((iframe)=>{ 
+                                        var url=iframe.src
+                                        var percent=0;
+                                        var player = new Vimeo.Player(iframe);
+                                    
+                                        async function viemoPlay(){
+                                            try {
+                                                const [title, duration] = await Promise.all([
+                                                    player.getVideoTitle(),
+                                                    player.getDuration(),
+                                                ]);
+                                                let label=title+" - "+url
+                                                player.on('play', function(event) {
+                                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                    let total_videos_started=1
+                                                                
+                                                    trackPlay("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);
+                                                });
+                                                player.on('pause', function(event) {
+                                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                    if(Math.round(event.seconds)!==duration){
+                                                        trackPause("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
+                                                    }
+                                                    
+                                                });
+                                                player.on('ended', function(event) {
+                                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                    let total_videos_completed=1
+                                                    trackComplete("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
+                                                });
+                                                
+                                                var lastTime=0;
+                                                var currentTime=0;
+                                                var seekStart = null;
+                                                player.on('seeking', function(event) {
+                                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                    if(seekStart === null){
+                                                        seekStart=lastTime
+                                                        trackSeek("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);   
+                                                    }
 
-                                                    });
-                                                    player.on('seeked', function(event) {
-                                                        seekStart = null;
-                                                    });
-                                                    player.on("timeupdate", function(event){
-                                                        
-                                                        timer=Math.floor((Date.now()-timerStart)/1000);
-                                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                        let percent_new=Math.round(event.seconds/duration*100);
-                                                        if(percent_new!==percent){
-                                                            percent=percent_new;
-                                                            if(percent===25||percent===50||percent===75||percent===90){
-                                                                percentage=percent+'%'
-                                                                let total_videos_progress=1
-                                                                trackProgress("Vimeo",title,Math.round(event.seconds),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
-                                                            }
+                                                });
+                                                player.on('seeked', function(event) {
+                                                    seekStart = null;
+                                                });
+                                                player.on("timeupdate", function(event){
+                                                    
+                                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                                    let percent_new=Math.round(event.seconds/duration*100);
+                                                    if(percent_new!==percent){
+                                                        percent=percent_new;
+                                                        if(percent===25||percent===50||percent===75||percent===90){
+                                                            percentage=percent+'%'
+                                                            let total_videos_progress=1
+                                                            trackProgress("Vimeo",title,Math.round(event.seconds),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                                         }
-                                                        lastTime = currentTime;
-                                                        currentTime = event.seconds;
-                                                    })
-                                                  
-                                                } catch (err) {
-                                                    console.log(err);
+                                                    }
+                                                    lastTime = currentTime;
+                                                    currentTime = event.seconds;
+                                                })
+                                                
+                                            } catch (err) {
+                                                console.log(err);
+                                            }
+                                        }
+                                        viemoPlay()
+
+                                    })                                          
+                                    clearInterval(checkVimeo);
+                                }
+                            }, 100);
+                            checkVimeo;
+                    
+                        }
+                        //Dailymotion videos
+                        if(dmotion&&dmotion.length>0){
+                            let tag = document.createElement('script');
+                            tag.src = "https://api.dmcdn.net/all.js";
+                            let firstScriptTag = document.getElementsByTagName('script')[0];
+                            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                            let checkDM = setInterval(function () {
+                                if(typeof DM !== 'undefined'){
+                                    dmotion.forEach((iframe)=>{ 
+                                        const url=iframe.src;
+                                        const videoID=url.substring(url.lastIndexOf('/')+1)
+                                        var duration;
+                                        var title;
+                                        var percent=0;
+                                        var label;
+                                        DM.api(
+                                            `/video/${videoID}`,
+                                            { fields: ['duration', 'title' ]},
+                                            result => {
+                                                // result is an Object with all the fields wanted
+                                                duration=result.duration;
+                                                title=result.title;
+                                                label=title+" - "+url;
+                                            }
+                                        )
+                                        var player =DM.player(iframe,{
+                                            video: videoID
+                                        });
+                                        
+                                        player.addEventListener('play', function(event){
+                                            timer=Math.floor((Date.now()-timerStart)/1000);
+                                            let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                            let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                            let total_videos_started=1          
+                                                
+                                            trackPlay("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);                                                
+                                        })
+                                        player.addEventListener('pause', function(event){
+                                            timer=Math.floor((Date.now()-timerStart)/1000);
+                                            let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                            let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                            trackPause("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
+                                            
+                                        })
+                                        player.addEventListener('seeking', function(){
+                                            timer=Math.floor((Date.now()-timerStart)/1000);
+                                            let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                            let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                            trackSeek("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);
+                                        })
+                                        player.addEventListener('end', function(){
+                                            timer=Math.floor((Date.now()-timerStart)/1000);
+                                            let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                            let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                            let total_videos_completed=1
+                                            trackComplete("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
+                                        })
+                                        player.addEventListener('timeupdate', function(){
+                                            timer=Math.floor((Date.now()-timerStart)/1000);
+                                            let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                            let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                            let percent_new=Math.round(event.target.currentTime/duration*100);
+                                            if(percent_new!==percent){
+                                                percent=percent_new;
+                                                if(percent===25||percent===50||percent===75||percent===90){
+                                                    percentage=percent+'%'
+                                                    let total_videos_progress=1
+                                                    trackProgress("Daily Motion",title,Math.round(event.target.currentTime),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                                 }
                                             }
-                                            viemoPlay()
+                                        }) 
 
-                                        })                                          
-                                        clearInterval(checkVimeo);
-                                    }
-                                }, 100);
-                                checkVimeo;
-                       
-                            }
-                            //Dailymotion videos
-                            if(dmotion&&dmotion.length>0){
-                                let tag = document.createElement('script');
-                                tag.src = "https://api.dmcdn.net/all.js";
-                                let firstScriptTag = document.getElementsByTagName('script')[0];
-                                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                                let checkDM = setInterval(function () {
-                                    if(DM){
-                                        dmotion.forEach((iframe)=>{ 
-                                            const url=iframe.src;
-                                            const videoID=url.substring(url.lastIndexOf('/')+1)
-                                            var duration;
-                                            var title;
-                                            var percent=0;
-                                            var label;
-                                            DM.api(
-                                                `/video/${videoID}`,
-                                                { fields: ['duration', 'title' ]},
-                                                result => {
-                                                    // result is an Object with all the fields wanted
-                                                    duration=result.duration;
-                                                    title=result.title;
-                                                    label=title+" - "+url;
-                                                }
-                                            )
-                                            var player =DM.player(iframe,{
-                                                video: videoID
-                                            });
-                                            
-                                            player.addEventListener('play', function(event){
-                                                timer=Math.floor((Date.now()-timerStart)/1000);
-                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                let total_videos_started=1          
-                                                 
-                                                trackPlay("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);                                                
-                                            })
-                                            player.addEventListener('pause', function(event){
-                                                timer=Math.floor((Date.now()-timerStart)/1000);
-                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                trackPause("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
-                                                
-                                            })
-                                            player.addEventListener('seeking', function(){
-                                                timer=Math.floor((Date.now()-timerStart)/1000);
-                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                trackSeek("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);
-                                            })
-                                            player.addEventListener('end', function(){
-                                                timer=Math.floor((Date.now()-timerStart)/1000);
-                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                let total_videos_completed=1
-                                                trackComplete("Daily Motion",title,Math.round(event.target.currentTime),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
-                                            })
-                                            player.addEventListener('timeupdate', function(){
-                                                timer=Math.floor((Date.now()-timerStart)/1000);
-                                                let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                let percent_new=Math.round(event.target.currentTime/duration*100);
-                                                if(percent_new!==percent){
-                                                    percent=percent_new;
-                                                    if(percent===25||percent===50||percent===75||percent===90){
-                                                        percentage=percent+'%'
-                                                        let total_videos_progress=1
-                                                        trackProgress("Daily Motion",title,Math.round(event.target.currentTime),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
-                                                    }
-                                                }
-                                            }) 
-
-                                        })                                          
-                                        clearInterval(checkDM);
-                                    }
-                                }, 100);
-                                checkDM;
-                       
-                            }
+                                    })                                          
+                                    clearInterval(checkDM);
+                                }
+                            }, 100);
+                            checkDM;
+                    
                         }
-                       
                         window.onPlayerReady=function(event) {
 
                             var lastTime = -1;
