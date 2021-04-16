@@ -595,7 +595,40 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             checkLink;
 
                         }
-                       
+                        //accordions
+                        const accordions=Array.prototype.slice.call(document.querySelectorAll('.accordion-title'),0);
+                        if(accordions&&accordions.length>0){
+                            accordions.forEach((accordion) => {
+                                accordion.addEventListener('click',(event)=>{
+                                    if(!accordion.parentElement.classList.contains('is-open')){
+                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+
+                                        trackFAQ(accordion.innerHTML,window.location.href,timer,scrollDepth,timestamp,document.referrer,window.location.href,accordion.innerHTML)
+                                    }
+                                })
+
+                            }) 
+                        }
+                        //FAQs on protect purdue site
+                        const uFAQs=Array.prototype.slice.call(document.querySelectorAll('.ufaq-faq-title,.ewd-ufaq-faq-title'),0);
+                        if(uFAQs&&uFAQs.length>0){
+                            uFAQs.forEach((uFAQ) => {
+                                uFAQ.addEventListener('click',(event)=>{
+                                    console.log(uFAQ.parentElement.classList)
+                                    if(uFAQ.nextElementSibling.classList.contains('ewd-ufaq-hidden')){
+                                        timer=Math.floor((Date.now()-timerStart)/1000);
+                                        let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                        let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                        let clickText=uFAQ.querySelector('.ufaq-faq-title-text,.ewd-ufaq-faq-title-text').textContent.trim()
+
+                                        trackFAQ(clickText,window.location.href,timer,scrollDepth,timestamp,document.referrer,window.location.href,clickText)
+                                    }
+                                })
+
+                            }) 
+                        }
                         //Embeded videos
                         var youtubePlayers=[];
                         var vimeoPlayers=[];
@@ -981,6 +1014,19 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             return decodeURIComponent(results[2].replace(/\+/g, ' '));
                         }
                         //Tracking functions
+                        function trackFAQ(click_text,path,time_on_page,scroll_depth,timestamp,referrer,action,label){
+                            analytics.track('FAQ Clicked', {
+                                click_text: click_text,
+                                path: path,
+                                time_on_page:time_on_page,
+                                scroll_depth:scroll_depth,
+                                timestamp:JSON.stringify(timestamp),
+                                referrer: document.referrer,
+                                category: "FAQ clicks",
+                                action:action,
+                                label:label
+                            });
+                        }
                         function trackSearchLink(click_text,query,page_number,time_on_page,scroll_depth,timestamp,referrer,total_search_result_clicks,category,action,label,value){
                             analytics.track("Search Results Page", {
                                 click_text: click_text,
