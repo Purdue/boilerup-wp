@@ -605,7 +605,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
                                         let scrollDepth=Math.floor(scrollTop/trackLength * 100)
 
-                                        trackFAQ(accordion.innerHTML,window.location.href,timer,scrollDepth,timestamp,document.referrer,window.location.href,accordion.innerHTML)
+                                        trackFAQ(accordion.innerHTML,window.location.pathname,timer,scrollDepth,timestamp,document.referrer,window.location.pathname,accordion.innerHTML)
                                     }
                                 })
 
@@ -623,7 +623,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         let scrollDepth=Math.floor(scrollTop/trackLength * 100)
                                         let clickText=uFAQ.querySelector('.ufaq-faq-title-text,.ewd-ufaq-faq-title-text').textContent.trim()
 
-                                        trackFAQ(clickText,window.location.href,timer,scrollDepth,timestamp,document.referrer,window.location.href,clickText)
+                                        trackFAQ(clickText,window.location.pathname,timer,scrollDepth,timestamp,document.referrer,window.location.pathname,clickText)
                                     }
                                 })
 
