@@ -844,11 +844,16 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             checkDM;
                     
                         }
+                        var focus = true;	
+                        document.addEventListener("visibilitychange", function() {	
+                            focus = document.hidden ? false:true;	
+                        });
                         window.onPlayerReady=function(event) {
 
                             var lastTime = -1;
                             var lastState=-1;
-                            var interval = 1500;
+                            const interval = 500;
+                            const margin = 500;
                             var percent = 0;
                             const duration=event.target.getDuration();
                             const title=event.target.getVideoData().title;
@@ -862,7 +867,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 if (lastTime !== -1) {
                               
                                     if(event.target.getPlayerState() === 1) {
-                                        if (Math.abs(event.target.getCurrentTime() - lastTime - 1) > 1) {
+                                        if (lastState===1 && Math.abs((event.target.getCurrentTime() - lastTime)*1000 - interval) > margin && focus) {
                                             trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label)
                                         }else if(lastState!==1){
                                             let total_videos_started=1
@@ -871,7 +876,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         }
                                     }
                                     if(event.target.getPlayerState() === 2&&lastState===2) {
-                                        if (Math.abs(event.target.getCurrentTime() - lastTime - 1) > 1) {
+                                        if (Math.abs((event.target.getCurrentTime() - lastTime)*1000 - interval) > margin) {
                                             trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label)
                                         }                                        
                                     }
@@ -1017,7 +1022,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         function trackFAQ(click_text,path,time_on_page,scroll_depth,timestamp,referrer,action,label){
                             analytics.track('FAQ Clicked', {
                                 click_text: click_text,
-                                path: path,
+                                page_path: path,
                                 time_on_page:time_on_page,
                                 scroll_depth:scroll_depth,
                                 timestamp:JSON.stringify(timestamp),
