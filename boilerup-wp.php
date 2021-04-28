@@ -743,7 +743,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                                     if(percent_new!==percent){
                                                         percent=percent_new;
                                                         if(percent===25||percent===50||percent===75||percent===90){
-                                                            percentage=percent+'%'
+                                                            let percentage=percent+'%'
                                                             let total_videos_progress=1
                                                             trackProgress("Vimeo",title,Math.round(event.seconds),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                                         }
@@ -830,7 +830,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             if(percent_new!==percent){
                                                 percent=percent_new;
                                                 if(percent===25||percent===50||percent===75||percent===90){
-                                                    percentage=percent+'%'
+                                                    let percentage=percent+'%'
                                                     let total_videos_progress=1
                                                     trackProgress("Daily Motion",title,Math.round(event.target.currentTime),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                                 }
@@ -852,8 +852,8 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 
                             var lastTime = -1;
                             var lastState=-1;
-                            const interval = 500;
-                            const margin = 500;
+                            const interval = 1000;
+                            const margin = 1000;
                             var percent = 0;
                             const duration=event.target.getDuration();
                             const title=event.target.getVideoData().title;
@@ -884,7 +884,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                     if(percent_new!==percent){
                                         percent=percent_new;
                                         if(percent===25||percent===50||percent===75||percent===90){
-                                            percentage=percent+'%'
+                                            let percentage=percent+'%'
                                             let total_videos_progress=1
                                             trackProgress("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                         }
@@ -999,7 +999,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                     if(percent_new!==percent){
                                         percent=percent_new;
                                         if(percent===25||percent===50||percent===75||percent===90){
-                                            percentage=percent+'%'
+                                            let percentage=percent+'%'
                                             let total_videos_progress=1
                                             trackProgress(ext,title,Math.round(event.target.currentTime),Math.round(duration),url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
                                         }
