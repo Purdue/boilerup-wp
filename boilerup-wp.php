@@ -72,7 +72,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
         
         public static function adobeFonts() {
             wp_enqueue_style( 
-                'brandfonts', 'https://use.typekit.net/hrz3oev.css'
+                'brandfonts', 'https://use.typekit.net/ghc8hdz.css'
             );
         }
 
