@@ -27,6 +27,10 @@ Provide a consistent method of managing the Purdue brand across multiple WordPre
 ```
 
 ## Change Log
+
+#### [1.8.1] - 2021-06-17
+- Updated adobe font
+
 #### [1.8.0] - 2020-03-30
 - ADD: Brand fonts added to admin pages
 
