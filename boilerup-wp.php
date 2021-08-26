@@ -36,7 +36,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
             add_action( 'admin_enqueue_scripts', array( __CLASS__, 'adobeFonts' ) );
             add_action( 'admin_enqueue_scripts', array( __CLASS__, 'unitedsansFont' ) );
             add_action( 'admin_enqueue_scripts', array( __CLASS__, 'sourceSerifPro' ) );
-            // add_action( 'wp_footer', array( __CLASS__, 'add_segment_form_identify' ), 5 );
             add_action( 'wp_footer', array( __CLASS__, 'add_segment_body_code' ));
             add_action( 'wp_head', array( __CLASS__, 'add_segment_code' ), 5 );
             add_action( 'wp_head', array( __CLASS__, 'add_header_icons' ) );
@@ -48,7 +47,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
         
         public static function adobeFonts() {
             wp_enqueue_style( 
-                'brandfonts', 'https://use.typekit.net/hrz3oev.css'
+                'brandfonts', 'https://use.typekit.net/ghc8hdz.css'
             );
         }
 
@@ -148,6 +147,9 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         let item_fail="gform_fail_"+formId  
                         let item_submit="gform_submit_"+formId  
                         let item_userType="gform_userType_"+formId
+                        //Testing parameter
+                        var item_studentType="gform_studentType_"+formId  
+                        //
 
                         timer=Math.floor((Date.now()-timerStart)/1000);
                         sessionStorage.setItem(item_time, timer)  
@@ -185,6 +187,14 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         sessionStorage.setItem(item_country, country)
                         sessionStorage.setItem(item_fail, "submitted")
                         sessionStorage.setItem(item_submit, "submitted")
+
+                        //set student type for testing
+
+                        Array.prototype.slice.call(form.querySelectorAll('label'),0).forEach((label)=>{
+                            if(label.textContent.indexOf("Student Type")!==-1){
+                                sessionStorage.setItem(item_studentType, label.nextElementSibling.querySelector('select').value)
+                            }
+                        })
 
                         setTimeout(function(){ 
                             form.submit()
@@ -262,6 +272,12 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             var item_submit="gform_submit_"+formId  
                             var session_item_submit=sessionStorage.getItem(item_submit);  
                                 !session_item_submit?sessionStorage.setItem(item_submit, ""):'';  
+                            
+                            //for testing
+                            var item_studentType="gform_studentType_"+formId  
+                            var session_item_studentType=sessionStorage.getItem(item_studentType);  
+                                !session_item_studentType?sessionStorage.setItem(item_studentType, null):'';  
+                            //end of setting testing parameter
 
                                 //form submit
                                 form.addEventListener("submit", this.formSubmitted)
@@ -304,6 +320,8 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                             sessionStorage.setItem(item_country, null)
                                             sessionStorage.setItem(item_fail, "")
                                             sessionStorage.setItem(item_submit, "")
+                                            // clear testing parameter
+                                            sessionStorage.setItem(item_studentType, null)
                                         }                                        
                                     }
                                 })
@@ -359,6 +377,11 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 var item_fail="gform_fail_"+formId  
                                 var session_item_fail=sessionStorage.getItem(item_fail);  
 
+                                //for testing
+                                var item_studentType="gform_studentType_"+formId  
+                                var session_item_studentType=sessionStorage.getItem(item_studentType);  
+                                //end of setting testing parameter
+
                                 if(session_item_submit&&session_item_submit!==""){
                                     let traits = {
                                         first_name : session_item_fname,
@@ -367,7 +390,8 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         phone : session_item_phone,
                                         state: session_item_state,
                                         postCode: session_item_zip,
-                                        country: session_item_country
+                                        country: session_item_country,
+                                        student_type: session_item_studentType
                                     }; 
                                     analytics.identify(traits); 
                                     let properties = {
@@ -397,6 +421,8 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                     sessionStorage.setItem(item_fail, "")
                                     sessionStorage.setItem(item_submit, "")
                                     sessionStorage.setItem(item_userType, null)
+                                    // clear testing parameter
+                                    sessionStorage.setItem(item_studentType, null)
                                 } 
                             })
                         }
@@ -412,7 +438,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 let href=link.href;
                                 let ext_name=href.split('?')[0].split('/').pop()
                                 let ext=ext_name.indexOf(".")!==-1?ext_name.substring(ext_name.lastIndexOf('.')+1):null
-                                if(!link.classList.contains('ewd-ufaq-post-margin')){
+                                if(!link.classList.contains('ewd-ufaq-post-margin')&&!link.classList.contains('preview-lazyload')){
                                     link.addEventListener('click',function(){
                                         event.preventDefault();
                                         timer=Math.floor((Date.now()-timerStart)/1000);
@@ -635,13 +661,25 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                         const youtube=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-youtube iframe'),0);
                         const vimeo=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-vimeo iframe'),0);
                         const dmotion=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-dailymotion iframe'),0);
+                        //with Lazy Load for Videos plugin
+                        const lazyYoutube=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-youtube .lazy-load-youtube'),0);
+                        const lazyVimeo=Array.prototype.slice.call(document.querySelectorAll('.wp-block-embed-vimeo .lazy-load-vimeo'),0);
 
-                        //YouTube videos
-                        if(youtube&&youtube.length>0){
+                        if((lazyYoutube&&lazyYoutube.length>0)||(youtube&&youtube.length>0)){
                             let tag = document.createElement('script');
                             tag.src = "https://www.youtube.com/iframe_api";
                             let firstScriptTag = document.getElementsByTagName('script')[0];
                             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+                        }
+                        if((vimeo&&vimeo.length>0)||(lazyVimeo&&lazyVimeo.length>0)){
+                            let tag = document.createElement('script');
+                            tag.src = "https://player.vimeo.com/api/player.js";
+                            let firstScriptTag = document.getElementsByTagName('script')[0];
+                            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                        }
+                        //YouTube videos
+                        if(youtube&&youtube.length>0){
                             let checkYT = setInterval(function () {
                                 if(typeof YT !== 'undefined'&&YT.loaded){
                                     youtube.forEach((iframe)=>{                                           
@@ -673,12 +711,47 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             }, 100);
                             checkYT;
                         }
+                        if(lazyYoutube&&lazyYoutube.length>0){
+                            lazyYoutube.forEach((el)=>{
+                                const parent = el.parentElement
+                                el.addEventListener('click',()=>{
+                                    
+                                    let iframe=parent.querySelector('iframe')
+                                    let checkYT = setInterval(function () {
+                                    if(typeof YT !== 'undefined'&&YT.loaded){
+                                                                               
+                                        if(iframe.src.indexOf("&origin=")!==-1){
+                                                iframe.src=iframe.src.substring(0,iframe.src.indexOf("&origin"))
+                                        }
+                                        if(iframe.src.indexOf("&enablejsapi=1")===-1){
+                                                iframe.src=iframe.src+"&enablejsapi=1"
+                                        }
+                                        
+                                        if(!iframe.id){
+                                            iframe.id="youtube"+iframe.src.split( 'embed/' )[1].split( '?' )[0]
+                                        }                                 
+                                        var player=new YT.Player( iframe.id, {
+                                            videoId:iframe.src.split( 'embed/' )[1].split( '?' )[0],
+                                            events: { 
+                                                'onReady': onPlayerReady,
+                                                'onStateChange': onPlayerStateChange 
+                                            }
+                                        }); 
+
+                                        youtubePlayers.push({
+                                            "id" :iframe.id,
+                                            "player" : player
+                                        });                             
+                                                                           
+                                        clearInterval(checkYT);
+                                    }
+                                }, 100);
+                                checkYT;
+                                })
+                            })
+                        }
                         //Vimeo videos
                         if(vimeo&&vimeo.length>0){
-                            let tag = document.createElement('script');
-                            tag.src = "https://player.vimeo.com/api/player.js";
-                            let firstScriptTag = document.getElementsByTagName('script')[0];
-                            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
                             let checkVimeo = setInterval(function () {
                                 if(typeof Vimeo !== 'undefined'){
                                     vimeo.forEach((iframe)=>{ 
@@ -686,85 +759,109 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                         var percent=0;
                                         var player = new Vimeo.Player(iframe);
                                     
-                                        async function viemoPlay(){
-                                            try {
-                                                const [title, duration] = await Promise.all([
-                                                    player.getVideoTitle(),
-                                                    player.getDuration(),
-                                                ]);
-                                                let label=title+" - "+url
-                                                player.on('play', function(event) {
-                                                    timer=Math.floor((Date.now()-timerStart)/1000);
-                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                    let total_videos_started=1
-                                                                
-                                                    trackPlay("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);
-                                                });
-                                                player.on('pause', function(event) {
-                                                    timer=Math.floor((Date.now()-timerStart)/1000);
-                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                    if(Math.round(event.seconds)!==duration){
-                                                        trackPause("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
-                                                    }
-                                                    
-                                                });
-                                                player.on('ended', function(event) {
-                                                    timer=Math.floor((Date.now()-timerStart)/1000);
-                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                    let total_videos_completed=1
-                                                    trackComplete("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
-                                                });
-                                                
-                                                var lastTime=0;
-                                                var currentTime=0;
-                                                var seekStart = null;
-                                                player.on('seeking', function(event) {
-                                                    timer=Math.floor((Date.now()-timerStart)/1000);
-                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                    if(seekStart === null){
-                                                        seekStart=lastTime
-                                                        trackSeek("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);   
-                                                    }
+                                        viemoPlay(player,percent,url)
 
-                                                });
-                                                player.on('seeked', function(event) {
-                                                    seekStart = null;
-                                                });
-                                                player.on("timeupdate", function(event){
-                                                    
-                                                    timer=Math.floor((Date.now()-timerStart)/1000);
-                                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
-                                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                                    let percent_new=Math.round(event.seconds/duration*100);
-                                                    if(percent_new!==percent){
-                                                        percent=percent_new;
-                                                        if(percent===25||percent===50||percent===75||percent===90){
-                                                            let percentage=percent+'%'
-                                                            let total_videos_progress=1
-                                                            trackProgress("Vimeo",title,Math.round(event.seconds),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
-                                                        }
-                                                    }
-                                                    lastTime = currentTime;
-                                                    currentTime = event.seconds;
-                                                })
-                                                
-                                            } catch (err) {
-                                                console.log(err);
-                                            }
-                                        }
-                                        viemoPlay()
-
-                                    })                                          
+                                    })  
                                     clearInterval(checkVimeo);
                                 }
                             }, 100);
                             checkVimeo;
                     
                         }
+
+                        if(lazyVimeo&&lazyVimeo.length>0){
+                            lazyVimeo.forEach((el)=>{
+                                const parent = el.parentElement
+                                el.addEventListener('click',()=>{
+                                    
+                                    let iframe=parent.querySelector('iframe')
+                                    let checkVimeo = setInterval(function () {
+                                    if(typeof checkVimeo !== 'undefined'){
+                                                                                
+                                        var url=iframe.src
+                                        var percent=0;
+                                        var player = new Vimeo.Player(iframe);
+                                    
+                                        viemoPlay(player,percent,url)                            
+                                                                            
+                                        clearInterval(checkVimeo);
+                                        }
+                                    }, 100);
+                                    checkVimeo;
+                                })
+                            })
+                        }
+                        async function viemoPlay(player,percent,url){
+                            try {
+                                const [title, duration] = await Promise.all([
+                                    player.getVideoTitle(),
+                                    player.getDuration(),
+                                ]);
+                                let label=title+" - "+url
+                                player.on('play', function(event) {
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                    let total_videos_started=1
+                                                
+                                    trackPlay("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);
+                                });
+                                player.on('pause', function(event) {
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                    if(Math.round(event.seconds)!==duration){
+                                        trackPause("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
+                                    }
+                                    
+                                });
+                                player.on('ended', function(event) {
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                    let total_videos_completed=1
+                                    trackComplete("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
+                                });
+                                
+                                var lastTime=0;
+                                var currentTime=0;
+                                var seekStart = null;
+                                player.on('seeking', function(event) {
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                    if(seekStart === null){
+                                        seekStart=lastTime
+                                        trackSeek("Vimeo",title,Math.round(event.seconds),duration,url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label);   
+                                    }
+
+                                });
+                                player.on('seeked', function(event) {
+                                    seekStart = null;
+                                });
+                                player.on("timeupdate", function(event){
+                                    
+                                    timer=Math.floor((Date.now()-timerStart)/1000);
+                                    let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+                                    let scrollDepth=Math.floor(scrollTop/trackLength * 100)
+                                    let percent_new=Math.round(event.seconds/duration*100);
+                                    if(percent_new!==percent){
+                                        percent=percent_new;
+                                        if(percent===25||percent===50||percent===75||percent===90){
+                                            let percentage=percent+'%'
+                                            let total_videos_progress=1
+                                            trackProgress("Vimeo",title,Math.round(event.seconds),duration,url,percentage,timer,scrollDepth,timestamp,document.referrer,total_videos_progress,"video",percentage,label)
+                                        }
+                                    }
+                                    lastTime = currentTime;
+                                    currentTime = event.seconds;
+                                })
+                                
+                            } catch (err) {
+                                console.log(err);
+                            }
+                        }                         
+
                         //Dailymotion videos
                         if(dmotion&&dmotion.length>0){
                             let tag = document.createElement('script');
@@ -844,16 +941,14 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             checkDM;
                     
                         }
-                        var focus = true;	
-                        document.addEventListener("visibilitychange", function() {	
-                            focus = document.hidden ? false:true;	
-                        });
+
+                        var sequence = [], timeout;
                         window.onPlayerReady=function(event) {
 
                             var lastTime = -1;
                             var lastState=-1;
-                            const interval = 1000;
-                            const margin = 1000;
+                            var interval = 250;
+                            var margin = 250;
                             var percent = 0;
                             const duration=event.target.getDuration();
                             const title=event.target.getVideoData().title;
@@ -864,21 +959,12 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                                 timer=Math.floor((Date.now()-timerStart)/1000);
                                 let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
                                 let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                                if (lastTime !== -1) {
-                              
-                                    if(event.target.getPlayerState() === 1) {
-                                        if (lastState===1 && Math.abs((event.target.getCurrentTime() - lastTime)*1000 - interval) > margin && focus) {
-                                            trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label)
-                                        }else if(lastState!==1){
-                                            let total_videos_started=1
-                                                                                            
-                                            trackPlay("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,total_videos_started,"video","Play",label);
-                                        }
-                                    }
+
+                                if (lastTime !== -1) {                              
                                     if(event.target.getPlayerState() === 2&&lastState===2) {
                                         if (Math.abs((event.target.getCurrentTime() - lastTime)*1000 - interval) > margin) {
                                             trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label)
-                                        }                                        
+                                        }                                    
                                     }
                                     let percent_new=Math.round(event.target.getCurrentTime()/duration*100);
                                     if(percent_new!==percent){
@@ -897,7 +983,7 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             }
                             setTimeout(checkPlayerTime, interval); /// initial call delayed 
                         }  
-
+                       
                         function onPlayerStateChange(event) {
                            
                             const duration=event.target.getDuration();
@@ -906,23 +992,47 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
                             timer=Math.floor((Date.now()-timerStart)/1000);
                             let scrollTop=window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
                             let scrollDepth=Math.floor(scrollTop/trackLength * 100)
-                            let label=title+" - "+url 
+                            let label=title+" - "+url                         
 
-                            switch(event.data) {
-                                case 0:
-                                    let total_videos_completed=1
-                                    trackComplete("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,total_videos_completed,"video","100%",label);
-                                    break;
-                                case 2:
-                                    setTimeout(function() {
-                                        if ( event.target.getPlayerState() == 2 && Math.round(event.target.getCurrentTime())!==duration ) {
-                                            trackPause("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
+                            sequence.push(event.data)
+                               
+                            if (event.data === 1 && isSubArrayEnd(sequence, [2, 3]) && !sequence.includes(-1)) {
+                                trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label); // Mouse seek                                
+                                sequence = []; // Reset event sequence
+                            } else if (event.data === 1 && isSubArrayEnd(sequence, [3]) && !sequence.includes(-1)) {
+                                trackSeek("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Seek",label); // Mouse seek                                
+                                sequence = []; // Reset event sequence
+                            } else {
+                                clearTimeout(timeout); // Cancel previous event
+                               
+                                if (event.data !== 3) { // If we're not buffering,
+                                    timeout = setTimeout(function () { // Start timer
+                                        if (event.data === 1) {                                                                                     
+                                            trackPlay("YouTube",title,0,Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,1,"video","Play",label);                        
                                         }
-                                    }, 1000)
-                                    break;
+                                        else if (event.data === 2) {
+                                            trackPause("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,"video","Pause",label);
+                                        }else if (event.data === 0){
+                                            trackComplete("YouTube",title,Math.round(event.target.getCurrentTime()),Math.round(duration),url,timer,scrollDepth,timestamp,document.referrer,1,"video","100%",label);
+                                        }
+                                        sequence = []; // Reset event sequence
+                                    }, 250);
+                                }
                             }
                                 
                         }
+                        function isSubArrayEnd (A, B) {
+                            if (A.length < B.length)
+                                return false;
+                            let i = 0;
+                            while (i < B.length) {
+                                if (A[i] !== B[i]) 
+                                return false;
+                                i++;
+                            }
+                            return true;
+                        }
+
                         //Uploaded videos
                         const videos=Array.prototype.slice.call(document.querySelectorAll('.wp-block-video video'));
                         if(videos&&videos.length>0){
