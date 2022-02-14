@@ -28,6 +28,9 @@ Provide a consistent method of managing the Purdue brand across multiple WordPre
 
 ## Change Log
 
+#### [1.8.2] - 2022-02-14
+- Remove segment code
+
 #### [1.8.1] - 2021-06-17
 - Updated adobe font
 

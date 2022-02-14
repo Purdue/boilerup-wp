@@ -33,8 +33,6 @@ if ( ! class_exists( 'PurdueBranding' ) ) :
 		}
 
 		private static function includes() {
-            require_once dirname( __FILE__ ) . '/inc/class-segment-tracker.php';
-
             require_once dirname( __FILE__ ) . '/admin/boilerup-config-options.php';
             new PurdueBranding_Settings_Page();
 		}
